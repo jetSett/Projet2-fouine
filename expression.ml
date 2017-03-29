@@ -4,7 +4,7 @@ type expr =
   | Nil
   | Variable of variable
   | Let_in of variable * expr * expr
-  | Function_args of variable * expr
+  | Function_arg of variable * expr
   | IfThenElse of bool_expr * expr * expr
   | BoolExpr of bool_expr
   | ArithExpr of arith_expr
