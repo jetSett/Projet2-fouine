@@ -15,6 +15,7 @@ rule token = parse
     | "not"                 {   NOT                     }
     | "true"                {   TRUE                    }
     | "false"               {   FALSE                   }
+    | "<>" {NEQ}
 
     (* arith_expr *)
     | '+'                   {PLUS}
@@ -24,13 +25,16 @@ rule token = parse
     | ['0'-'9']+ as s   {   INT (int_of_string s)   }
 
 
-    (* prog *)
+    (* expr *)
     | '='                   {   EQUAL                   }
     | '('                   {   LPARENT                 }
     | ')'                   {   RPARENT                 }
     | "let"                 {   LET                     }
     | "in"                  {   IN                      }
     | ";;"                  {   END_PROG                }
+    | "if" {IF}
+    | "then" {THEN}
+    | "else" {ELSE}
     | "fun" { FUN }
     | "->" {ARROW}
 
