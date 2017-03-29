@@ -14,17 +14,17 @@ and funct =
   | Function_arg of variable * prog (* fun var -> prog(var) *)
   | Function_noArg of prog
 
-and evaluation = (* l'evaluation de quoi que ce soit *)
-  | Eval_function_arg of evaluation * evaluation (* on évalue sur une fonction qui va nous etre donnée *)
-  | Eval_function_var of variable * evaluation (* on évalue une fonction dans une variable *)
-  | Eval_function_anon of funct * evaluation (* on évalue une fonction anonyme *)
+and evaluation =  (* evaluation of something *)
+  | Eval_function_arg of evaluation * evaluation (* evaluating a function that will be given *)
+  | Eval_function_var of variable * evaluation (* a function in a variable *)
+  | Eval_function_anon of funct * evaluation (* an anonymous function *)
   | Eval_arith_expr of arith_expr
   | Eval_bool_expr of bool_expr
   | Eval_var of variable
   | Eval_prog of prog
 
 and
-  bool_expr =
+  bool_expr = (* a boolean expression *)
   | Const_bool of bool
   | Not of bool_expr
   | And of bool_expr * bool_expr
@@ -32,7 +32,7 @@ and
   | Eval_bool of evaluation
 
 and
-  arith_expr =
+  arith_expr = (* an arithmetic expression *)
   | Const_int of int
   | Plus of arith_expr * arith_expr
   | Minus of arith_expr * arith_expr
