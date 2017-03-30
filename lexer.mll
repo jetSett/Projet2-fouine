@@ -24,9 +24,8 @@ rule token = parse
     | '/'                   {   DIVIDE                  }
     | ['0'-'9']+ as s       {   INT (int_of_string s)   }
 
-
     (* expr *)
-    | '='                   {   EQUAL                   }
+    | '='                   {   AFFECT                  }
     | '('                   {   LPARENT                 }
     | ')'                   {   RPARENT                 }
     | "let"                 {   LET                     }

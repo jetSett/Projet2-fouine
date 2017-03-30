@@ -1,28 +1,20 @@
 type variable = Var of string;;
 
 type expr =
-  | Nil
+  | Unit
   | Variable of variable
   | Let_in of variable * expr * expr
   | Function_arg of variable * expr
-  | IfThenElse of bool_expr * expr * expr
-  | BoolExpr of bool_expr
-  | ArithExpr of arith_expr
-
-and
-  bool_expr = (* a boolean expression *)
+  | IfThenElse of expr * expr * expr
   | Const_bool of bool
   | Not of expr
   | And of expr * expr
   | Or of expr * expr
   | Eq of expr * expr
-  | NEq of expr * expr
-
-
-and
-  arith_expr = (* an arithmetic expression *)
+  | Neq of expr * expr
   | Const_int of int
   | Plus of expr * expr
   | Minus of expr * expr
   | Times of expr * expr
   | Divide of expr * expr
+;;
