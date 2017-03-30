@@ -1,12 +1,9 @@
 {
   open Parser;;
-  exception Eof;;
 }
 
 rule token = parse
-    | [' ' '\t']            {   token lexbuf            }
-    | '\n'                  {   EOL                     }
-    | eof                   {   raise Eof               }
+    | [' ' '\t' '\n']       {   token lexbuf            }
 
     (* bool_expr *)
     | "||"                  {   OR                      }

@@ -17,4 +17,5 @@ type expr =
   | Minus of expr * expr
   | Times of expr * expr
   | Divide of expr * expr
+  | Apply of expr * expr (* TODO : parse it *)
 ;;

@@ -44,10 +44,10 @@ variable:
 expr:
   | LPARENT RPARENT                             {     Unit                                }
   | LPARENT expr RPARENT                        {     $2                                  }
-  // | LET variable AFFECT expr IN expr            {     Let_in($2, $4, $6)                  }
-  // | FUN variable ARROW expr                     {     Function_arg($2, $4)                }
+  | LET variable AFFECT expr IN expr            {     Let_in($2, $4, $6)                  }
+  | FUN variable ARROW expr                     {     Function_arg($2, $4)                }
   | variable                                    {     Variable($1)                        }
-  // | IF expr THEN expr ELSE expr                 {     IfThenElse($2, $4, $6)              }
+  | IF expr THEN expr ELSE expr                 {     IfThenElse($2, $4, $6)              }
   | expr PLUS expr                              {     Plus($1, $3)                        }
   | expr MINUS expr                             {     Minus($1, $3)                       }
   | expr TIMES expr                             {     Times($1, $3)                       }
@@ -61,4 +61,5 @@ expr:
   | expr OR expr                                {     Or($1, $3)                          }
   | expr EQ expr                                {     Eq($1, $3)                          }
   | expr NEQ expr                               {     Neq($1, $3)                         }
+  | expr expr                                   {     Apply($1, $2)                       }
 ;
