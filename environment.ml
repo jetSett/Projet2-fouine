@@ -1,6 +1,7 @@
-type Value =
+open Expression;;
+
+type value =
       | Int of int
-      | Bool of bool
-      | Cloture of expr * env
+      | Closure of expr * env
 and
-  env == string*int list;;
+  env = (string*int) list;;

@@ -41,7 +41,7 @@ variable:
   | VAR                                         {       Var($1)                           }
 ;
 
-expr:
+sexpr:
   | LPARENT RPARENT                             {     Unit                                }
   | LPARENT expr RPARENT                        {     $2                                  }
   | LET variable AFFECT expr IN expr            {     Let_in($2, $4, $6)                  }
@@ -61,5 +61,9 @@ expr:
   | expr OR expr                                {     Or($1, $3)                          }
   | expr EQ expr                                {     Eq($1, $3)                          }
   | expr NEQ expr                               {     Neq($1, $3)                         }
-  | expr expr                                   {     Apply($1, $2)                       }
+;
+
+expr:
+  | expr sexpr                                  {     Apply($1, $2)                       }
+  | sexpr                                       {     $1                                  }
 ;
