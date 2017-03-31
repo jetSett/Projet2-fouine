@@ -41,11 +41,16 @@ variable:
   | VAR                                         {       Var($1)                           }
 ;
 
+lvariable:
+  |                                             {       []                                }
+  | variable lvariable                          {       $1::$2                            }
+;
+
 sexpr:
   | LPARENT RPARENT                             {     Unit                                }
   | LPARENT expr RPARENT                        {     $2                                  }
-  | LET variable AFFECT expr IN expr            {     Let_in($2, $4, $6)                  }
-  | FUN variable ARROW expr                     {     Function_arg($2, $4)                }
+  | LET variable lvariable AFFECT expr IN expr  {     Let_in($2, map_fun $3 $5, $7)       }
+  | FUN variable lvariable ARROW expr           {     Function_arg($2, map_fun $3 $5)     }
   | variable                                    {     Variable($1)                        }
   | IF expr THEN expr ELSE expr                 {     IfThenElse($2, $4, $6)              }
   | expr PLUS expr                              {     Plus($1, $3)                        }
@@ -64,6 +69,6 @@ sexpr:
 ;
 
 expr:
-  | expr sexpr                                  {     Apply($1, $2)                       }
   | sexpr                                       {     $1                                  }
+  | expr sexpr                                  {     Apply($1, $2)                       }
 ;

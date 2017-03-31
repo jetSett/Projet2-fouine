@@ -16,14 +16,14 @@ let ( /$ ) a b = match a, b with | Int(a), Int(b) -> Int(a / b) | _ -> raise Not
 let rec eval env = function
   | Unit -> Int(0)
   | Variable(x) ->
-    (* let v = Env.search env x in v *) Int(-1)
+    let v = Env.search env x in v
   | Let_in(x, expr_x, b) ->
     let val_x = eval env expr_x in
-    (* Env.push env x val_x; *)
+    Env.push env x val_x;
     let return = eval env b in
-    (* Env.pop env x; *)
+    Env.pop env x;
     return
-  | Function_arg(x, e) as f -> Closure(f, (* copy of *) env)
+  | Function_arg(x, e) as f -> Closure(f, !env)
   | IfThenElse(b, left, right) ->
     let is_left = eval env b in
     if is_left <> Int(0) then eval env left else eval env right
@@ -41,7 +41,8 @@ let rec eval env = function
   | Divide(a, b) -> (eval env a) /$ (eval env b)
   | Apply(f, arg) ->
     match eval env f with
-    | Closure(Function_arg(x, expr), e') ->
-      (* Env.push e' x (eval env arg); *)
+    | Closure(Function_arg(x, expr), e) ->
+      let e' = ref e in
+      Env.push e' x (eval env arg);
       eval e' expr
     | _-> raise Not_A_Closure;;

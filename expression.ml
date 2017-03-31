@@ -19,3 +19,9 @@ type expr =
   | Divide of expr * expr
   | Apply of expr * expr (* TODO : parse it *)
 ;;
+
+let map_fun variables expr =
+  let rec aux = function
+    | [] -> expr
+    | v::xs -> Function_arg(v, aux xs)
+  in aux variables;;
