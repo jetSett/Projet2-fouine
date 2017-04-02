@@ -69,6 +69,6 @@ sexpr:
 ;
 
 expr:
-  | sexpr                                       {     $1                                  }
   | expr sexpr                                  {     Apply($1, $2)                       }
+  | sexpr                                       {     $1                                  }
 ;
