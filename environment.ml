@@ -10,7 +10,7 @@ module type PushDictionary = sig
   val pop : 'a dict -> variable -> unit
 
   val copy : 'a dict -> 'a dict
-
+  val print : 'a dict -> unit
 end
 
 module Environment =
@@ -34,6 +34,13 @@ struct
 
   let printValue = function
     | Int(i) -> print_string "- : int = "; print_int i
-    | Closure(f, e') -> print_string "- : function = "; PrintExpr.printExpr f
+    | Closure(f, e') -> print_string "- : function = "; PrintExpr.printExpr f;
+
+  let env_free_var env l = let e = create () in
+  let rec aux = function
+    | [] -> ()
+    | x::q -> push e x (search env x); aux q;
+    in
+  aux l; e
 
 end;;
