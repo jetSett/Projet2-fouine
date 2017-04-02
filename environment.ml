@@ -1,15 +1,39 @@
 open Expression;;
 open List;;
 
-type value =
-      | Int of int
-      | Closure of expr * env
-and
-  env = (variable*value) list;;
+module type PushDictionary = sig
+  type 'a dict (* un dictio indexé par des variables *)
 
-module Env = struct
-  let create () = ref []
-  let push e x v = e := (x, v)::(!e)
-  let search e x = List.assoc x (!e)
-  let pop e x = e := (List.remove_assoc x (!e))
+  val create : unit -> 'a dict
+  val push : 'a dict -> variable -> 'a -> unit
+  val search : 'a dict -> variable -> 'a
+  val pop : 'a dict -> variable -> unit
+
+  val copy : 'a dict -> 'a dict
+
+end
+
+module Environment =
+functor (Dict : PushDictionary) ->
+struct
+  type value =
+  | Int of int
+  | Closure of expr * value Dict.dict
+
+  type env = value Dict.dict
+
+  let create : unit -> env = Dict.create
+
+  let push : env -> variable -> value -> unit = Dict.push
+
+  let search : env -> variable -> value = Dict.search
+
+  let pop : env -> variable -> unit = Dict.pop
+
+  let copy : env -> env = Dict.copy
+
+  let printValue = function
+    | Int(i) -> print_string "- : int = "; print_int i
+    | Closure(f, e') -> print_string "- : function = "; PrintExpr.printExpr f
+
 end;;

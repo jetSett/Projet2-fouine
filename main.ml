@@ -12,5 +12,5 @@ printExpr result;
 print_newline ();
 
 let value = eval (Env.create ()) result in
-printValue value;
+Env.printValue value;
 print_newline ();

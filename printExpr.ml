@@ -1,5 +1,4 @@
 open Expression;;
-open Environment;;
 
 let printVar = function Var(x) -> print_string x;;
 
@@ -35,8 +34,3 @@ let rec printExpr e =
   );
   if not isAtomic
       then ps ")";;
-
-let printValue = function
-  | Int(i) -> print_string "- : int = "; print_int i
-  | Closure(f, e') -> print_string "- : function = "; printExpr f
-;;
