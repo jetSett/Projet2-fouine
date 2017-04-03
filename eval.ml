@@ -27,7 +27,7 @@ let rec eval env = function
     let return = eval env b in
     Env.pop env x;
     return
-  | Function_arg(x, e) as f -> Env.Closure(f, Env.env_free_var env (free_variable_list e))
+  | Function_arg(x, e) as f -> Env.Closure(f, Env.env_free_var env (free_variable_list f))
   | IfThenElse(b, left, right) ->
     let is_left = eval env b in
     if is_left <> Env.Int(0) then eval env left else eval env right

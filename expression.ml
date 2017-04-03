@@ -41,7 +41,7 @@ let free_variable_list e =
                         else
                           aux e2 (x::linked_v)
                           in
-                          merge l1 (aux e2 linked_v)
+                          merge l1 (aux e1 linked_v)
     | Function_arg(x, e1) ->
                         if List.mem x linked_v then
                           aux e1 linked_v
