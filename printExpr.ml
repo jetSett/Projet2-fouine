@@ -23,7 +23,7 @@ let rec printExpr e =
   | Not(c) -> ps "not "; printExpr c
   | And(a, b) -> printExpr a; ps "&&"; printExpr b
   | Or(a, b) -> printExpr a; ps "||"; printExpr b
-  | Eq(a, b) -> printExpr a; ps " == "; printExpr b
+  | Eq(a, b) -> printExpr a; ps " = "; printExpr b
   | Neq(a, b) -> printExpr a; ps " <> "; printExpr b
   | Const_int(x) -> print_int x
   | Plus(a, b) -> printExpr a; ps " + "; printExpr b
@@ -31,6 +31,13 @@ let rec printExpr e =
   | Times(a, b) -> printExpr a; ps "*"; printExpr b
   | Divide(a, b) -> printExpr a; ps "/"; printExpr b
   | Apply(a, b) -> printExpr a; ps " "; printExpr b
+  | Reference(e) -> print_string "ref "; printExpr e
+  | Deference(r) -> print_string "!"; printExpr r
+  | Imp(a, b) -> printExpr a; print_string ";"; printExpr b
+  | Lt(a, b) -> printExpr a; print_string "<"; printExpr b
+  | Gt(a, b) -> printExpr a; print_string ">"; printExpr b
+  | Lte(a, b) -> printExpr a; print_string "<="; printExpr b
+  | Gte(a, b) -> printExpr a; print_string ">="; printExpr b
   );
   if not isAtomic
       then ps ")";;

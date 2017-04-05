@@ -11,8 +11,12 @@ rule token = parse
     | "not"                 {   NOT                     }
     | "true"                {   TRUE                    }
     | "false"               {   FALSE                   }
-    | "=="                  {   EQ                      }
+    | "="                   {   EQ                      }
     | "<>"                  {   NEQ                     }
+    | ">"                   {   GT                      }
+    | "<"                   {   LT                      }
+    | ">="                  {   GTE                     }
+    | "<="                  {   LTE                     }
 
     (* arith_expr *)
     | '+'                   {   PLUS                    }
@@ -22,10 +26,10 @@ rule token = parse
     | ['0'-'9']+ as s       {   INT (int_of_string s)   }
 
     (* expr *)
-    | '='                   {   AFFECT                  }
     | '('                   {   LPARENT                 }
     | ')'                   {   RPARENT                 }
     | "let"                 {   LET                     }
+    | "rec"                 {   REC                     }
     | "in"                  {   IN                      }
     | ";;"                  {   END_PROG                }
     | "if"                  {   IF                      }
@@ -33,6 +37,10 @@ rule token = parse
     | "else"                {   ELSE                    }
     | "fun"                 {   FUN                     }
     | "->"                  {   ARROW                   }
+    | "ref"                 {   REF                     }
+    | "!"                   {   DEREF                   }
+    | ":="                  {   SET                     }
+    | ";"                   {   IMP                     }
 
     (* var *)
     | ['a'-'z']['a'-'z' 'A'-'Z' '_' '1'-'9']* as s {   VAR( s )  }

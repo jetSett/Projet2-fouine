@@ -7,25 +7,32 @@
 
 // expr
 %token LPARENT RPARENT
-%token LET IN FUN ARROW IF THEN ELSE AFFECT
+%token LET IN FUN ARROW IF THEN ELSE REF DEREF SET IMP REC
 %token <string> VAR
 
 // bool_expr
 %token TRUE FALSE
-%token EQ NEQ OR AND NOT
+%token EQ NEQ OR AND NOT GT LT GTE LTE
 
 // arith_expr
 %token <int> INT
 %token PLUS MINUS DIVIDE TIMES
 
-%left EQ NEQ
+%left LET, REC, IN
+%left IMP
+%left IF, THEN, ELSE
+%right FUN, ARROW
+
 %left OR
 %left AND
+%left EQ NEQ LT GT LTE GTE
 %nonassoc NOT
 
 %left PLUS MINUS
 %left TIMES DIVIDE
-%nonassoc UMINUS  /* un "faux token", correspondant au "-" unaire */
+%nonassoc UMINUS
+
+%nonassoc DEREF
 
 %start main
 
@@ -49,10 +56,14 @@ lvariable:
 sexpr:
   | LPARENT RPARENT                             {     Unit                                }
   | LPARENT expr RPARENT                        {     $2                                  }
-  | LET variable lvariable AFFECT expr IN expr  {     Let_in($2, map_fun $3 $5, $7)       }
+  /*| LET REC variable lvariable EQ expr IN expr  {     Let_rec($3, map_fun $4 $6, $8)      }*/
+  | LET variable lvariable EQ expr IN expr      {     Let_in($2, map_fun $3 $5, $7)       }
   | FUN variable lvariable ARROW expr           {     Function_arg($2, map_fun $3 $5)     }
   | variable                                    {     Variable($1)                        }
-  | IF expr THEN expr ELSE expr                 {     IfThenElse($2, $4, $6)              }
+  | expr IMP expr                               {     Imp($1, $3)                         }
+  | REF expr                                    {     Reference($2)                       }
+  | IF bexpr THEN expr ELSE expr                {     IfThenElse($2, $4, $6)              }
+  | DEREF expr                                  {     Deference($2)                       }
   | expr PLUS expr                              {     Plus($1, $3)                        }
   | expr MINUS expr                             {     Minus($1, $3)                       }
   | expr TIMES expr                             {     Times($1, $3)                       }
@@ -61,11 +72,19 @@ sexpr:
   | INT                                         {     Const_int($1)                       }
   | TRUE                                        {     Const_bool(true)                    }
   | FALSE                                       {     Const_bool(false)                   }
-  | NOT expr                                    {     Not($2)                             }
-  | expr AND expr                               {     And($1, $3)                         }
-  | expr OR expr                                {     Or($1, $3)                          }
-  | expr EQ expr                                {     Eq($1, $3)                          }
-  | expr NEQ expr                               {     Neq($1, $3)                         }
+;
+
+bexpr:
+  | expr                                        {     $1                                  }
+  | bexpr EQ bexpr                              {     Eq($1, $3)                          }
+  | bexpr NEQ bexpr                             {     Neq($1, $3)                         }
+  | bexpr LT bexpr                              {     Lt($1, $3)                          }
+  | bexpr GT bexpr                              {     Gt($1, $3)                          }
+  | bexpr LTE bexpr                             {     Lte($1, $3)                         }
+  | bexpr GTE bexpr                             {     Gte($1, $3)                         }
+  | bexpr AND bexpr                             {     And($1, $3)                         }
+  | bexpr OR bexpr                              {     Or($1, $3)                          }
+  | NOT bexpr                                   {     Not($2)                             }
 ;
 
 expr:
