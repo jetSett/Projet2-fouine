@@ -12,6 +12,7 @@ type expr =
   | Not of expr
   | IfThenElse of expr * expr * expr
   | TryWith of expr * variable * expr
+  | PrInt of expr
   | And of expr * expr
   | Or of expr * expr
   | Eq of expr * expr

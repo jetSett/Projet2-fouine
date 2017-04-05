@@ -43,8 +43,9 @@ rule token = parse
     | ";"                   {   IMP                     }
     | "try"                 {   TRY                     }
     | "with"                {   WITH                    }
-    | "E"                   {   EXCEPT                   }
+    | "E"                   {   EXCEPT                  }
     | "raise"               {   RAISE                   }
+    | "prInt"               {   PRINT                   }
 
     (* var *)
     | ['a'-'z']['a'-'z' 'A'-'Z' '_' '1'-'9']* as s {   VAR( s )  }

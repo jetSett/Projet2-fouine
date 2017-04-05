@@ -16,6 +16,7 @@ let rec printExpr e =
   (match e with
   | Unit -> ()
   | Raise(x) -> ps "raise "; print_int x;
+  | PrInt(e) -> ps "prInt "; printExpr e;
   | Variable(x) -> printVar x
   | Let_in(x, e1, e2) -> ps "let "; printVar x; ps " = "; printExpr e1; ps " in "; printExpr e2
   | Let_rec(x, e1, e2) -> ps "let rec "; printVar x; ps " = "; printExpr e1; ps " in "; printExpr e2

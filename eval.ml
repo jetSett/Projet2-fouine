@@ -44,18 +44,19 @@ let rec eval env = function
     let return = eval env b in
     Env.pop env f;
     return
+  | PrInt(e) -> let a = eval env e in
+                (match a with
+                | Env.Int(i) -> print_int i; print_string "\n"; a
+                | _ -> raise Not_An_Int)
   | TryWith(e1, x, e2) -> (* on gère tout avec le mécanisme d'exception de caml *)
                           (* l'idée est que on rattrape une exception si elle est lancée *)
                           let ecopy = Env.copy env in
-                          let ret =
-                          try
+                          (try
                             eval env e1
-                          with Except_in_eval(i) -> (* il y a eu une exception *)
+                           with Except_in_eval(i) -> (* il y a eu une exception *)
                                                     (* on reviens à l'ancien env et on rajoute la variable *)
                                                     Env.push ecopy x (Env.Int(i));
-                                                    eval ecopy e2
-                              in
-                              ret
+                                                    eval ecopy e2 )
 
   | Function_arg(x, e) as f -> Env.Closure(f, Env.env_free_var env (free_variable_list f))
   | IfThenElse(b, left, right) ->
