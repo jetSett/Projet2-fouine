@@ -15,11 +15,13 @@ let rec printExpr e =
       then ps "(";
   (match e with
   | Unit -> ()
+  | Raise(x) -> ps "raise "; print_int x;
   | Variable(x) -> printVar x
   | Let_in(x, e1, e2) -> ps "let "; printVar x; ps " = "; printExpr e1; ps " in "; printExpr e2
   | Let_rec(x, e1, e2) -> ps "let rec "; printVar x; ps " = "; printExpr e1; ps " in "; printExpr e2
   | Function_arg(x, e) -> ps "fun "; printVar x; ps " -> "; printExpr e
   | IfThenElse(c, a, b) -> ps "if "; printExpr c; ps " then "; printExpr a; ps " else "; printExpr b
+  | TryWith(e1, Var(x), e2) -> ps "try "; printExpr e1; ps "with E "; ps x; ps " -> "; printExpr e2;
   | Const_bool(b) -> if b then ps "true" else ps "false"
   | Not(c) -> ps "not "; printExpr c
   | And(a, b) -> printExpr a; ps "&&"; printExpr b

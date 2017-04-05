@@ -5,6 +5,7 @@ open Dictpush_hashTbl;;
 exception Not_A_Closure;;
 exception Not_An_Int;;
 exception Not_A_Reference;;
+exception Except_in_eval of int;;
 
 module Env = Environment(Dictpush_hashTbl)
 
@@ -23,6 +24,7 @@ let (>=$ ) a b = match a, b with | Env.Int(a), Env.Int(b) -> cond (a >= b) | _ -
 
 let rec eval env = function
   | Unit -> Env.Int(0)
+  | Raise(i) -> raise (Except_in_eval i)
   | Variable(x) ->
     let v = Env.search env x in v
   | Let_in(x, expr_x, b) ->
@@ -42,6 +44,19 @@ let rec eval env = function
     let return = eval env b in
     Env.pop env f;
     return
+  | TryWith(e1, x, e2) -> (* on gère tout avec le mécanisme d'exception de caml *)
+                          (* l'idée est que on rattrape une exception si elle est lancée *)
+                          let ecopy = Env.copy env in
+                          let ret =
+                          try
+                            eval env e1
+                          with Except_in_eval(i) -> (* il y a eu une exception *)
+                                                    (* on reviens à l'ancien env et on rajoute la variable *)
+                                                    Env.push ecopy x (Env.Int(i));
+                                                    eval ecopy e2
+                              in
+                              ret
+
   | Function_arg(x, e) as f -> Env.Closure(f, Env.env_free_var env (free_variable_list f))
   | IfThenElse(b, left, right) ->
     let is_left = eval env b in

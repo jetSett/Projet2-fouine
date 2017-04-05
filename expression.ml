@@ -2,6 +2,7 @@ type variable = Var of string;;
 
 type expr =
   | Unit
+  | Raise of int
   | Const_int of int
   | Const_bool of bool
   | Variable of variable
@@ -10,6 +11,7 @@ type expr =
   | Function_arg of variable * expr
   | Not of expr
   | IfThenElse of expr * expr * expr
+  | TryWith of expr * variable * expr
   | And of expr * expr
   | Or of expr * expr
   | Eq of expr * expr

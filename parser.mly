@@ -8,6 +8,7 @@
 // expr
 %token LPARENT RPARENT
 %token LET IN FUN ARROW IF THEN ELSE REF DEREF SET IMP REC
+%token TRY WITH EXCEPT RAISE
 %token <string> VAR
 
 // bool_expr
@@ -56,6 +57,8 @@ lvariable:
 sexpr:
   | LPARENT RPARENT                             {     Unit                                }
   | LPARENT expr RPARENT                        {     $2                                  }
+  | RAISE INT                                   {     Raise($2)                           }
+  | TRY expr WITH EXCEPT variable ARROW expr         {     TryWith($2, $5, $7)                 }
   | LET REC variable lvariable EQ expr IN expr  {     Let_rec($3, map_fun $4 $6, $8)      }
   | LET variable lvariable EQ expr IN expr      {     Let_in($2, map_fun $3 $5, $7)       }
   | FUN variable lvariable ARROW expr           {     Function_arg($2, map_fun $3 $5)     }
