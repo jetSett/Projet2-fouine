@@ -56,7 +56,7 @@ lvariable:
 sexpr:
   | LPARENT RPARENT                             {     Unit                                }
   | LPARENT expr RPARENT                        {     $2                                  }
-  /*| LET REC variable lvariable EQ expr IN expr  {     Let_rec($3, map_fun $4 $6, $8)      }*/
+  | LET REC variable lvariable EQ expr IN expr  {     Let_rec($3, map_fun $4 $6, $8)      }
   | LET variable lvariable EQ expr IN expr      {     Let_in($2, map_fun $3 $5, $7)       }
   | FUN variable lvariable ARROW expr           {     Function_arg($2, map_fun $3 $5)     }
   | variable                                    {     Variable($1)                        }

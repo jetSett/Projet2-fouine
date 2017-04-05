@@ -6,7 +6,7 @@ type expr =
   | Const_bool of bool
   | Variable of variable
   | Let_in of variable * expr * expr
-  (*| Let_rec of variable * expr * expr*)
+  | Let_rec of variable * expr * expr
   | Function_arg of variable * expr
   | Not of expr
   | IfThenElse of expr * expr * expr
@@ -43,6 +43,11 @@ let free_variable_list e =
   let rec aux linked_v = function
     | Unit | Const_int(_) | Const_bool(_) -> []
     | Variable(v) -> if List.mem v linked_v then [] else [v]
+    | Let_rec(x, e1, e2) ->
+      let l =
+        if List.mem x linked_v
+        then linked_v else x::linked_v
+      in merge (aux l e1) (aux l e2)
     | Let_in(x, e1, e2) ->
       let l1 =
         if List.mem x linked_v

@@ -17,6 +17,7 @@ let rec printExpr e =
   | Unit -> ()
   | Variable(x) -> printVar x
   | Let_in(x, e1, e2) -> ps "let "; printVar x; ps " = "; printExpr e1; ps " in "; printExpr e2
+  | Let_rec(x, e1, e2) -> ps "let rec "; printVar x; ps " = "; printExpr e1; ps " in "; printExpr e2
   | Function_arg(x, e) -> ps "fun "; printVar x; ps " -> "; printExpr e
   | IfThenElse(c, a, b) -> ps "if "; printExpr c; ps " then "; printExpr a; ps " else "; printExpr b
   | Const_bool(b) -> if b then ps "true" else ps "false"

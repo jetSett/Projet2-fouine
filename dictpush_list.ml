@@ -4,6 +4,7 @@ module Dictpush_list = struct
   type 'a dict = ((variable*'a) list) ref
   let create () = ref []
   let push e x v = e := (x, v)::(!e)
+  let replace e x v = pop e x; push e x v
   let search e x = List.assoc x (!e)
   let pop e x = e := (List.remove_assoc x (!e))
   let copy l =

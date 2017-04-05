@@ -31,6 +31,17 @@ let rec eval env = function
     let return = eval env b in
     Env.pop env x;
     return
+  | Let_rec(f, expr_f, b) ->
+    let naive = free_variable_list expr_f in
+    print_int (List.length naive);
+    let vars = List.filter (fun v -> v <> f) naive in
+    let env_rec = Env.env_free_var env vars in
+    let closure = Env.Closure(expr_f, env_rec) in
+    Env.push env_rec f closure;
+    Env.push env f closure;
+    let return = eval env b in
+    Env.pop env f;
+    return
   | Function_arg(x, e) as f -> Env.Closure(f, Env.env_free_var env (free_variable_list f))
   | IfThenElse(b, left, right) ->
     let is_left = eval env b in
@@ -58,5 +69,7 @@ let rec eval env = function
     match eval env f with
     | Env.Closure(Function_arg(x, expr), e) ->
       Env.push e x (eval env arg);
-      eval e expr
+      let return = eval e expr in
+      Env.pop e x;
+      return
     | _-> raise Not_A_Closure;;
