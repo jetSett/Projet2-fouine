@@ -7,7 +7,7 @@
 
 // expr
 %token LPARENT RPARENT
-%token LET IN FUN ARROW IF THEN ELSE REF DEREF SET IMP REC
+%token LET IN FUN ARROW IF THEN ELSE REF DEREF SET IMP REC AFFECT
 %token TRY WITH EXCEPT RAISE PRINT
 %token <string> VAR
 
@@ -23,6 +23,7 @@
 %left IMP
 %left IF, THEN, ELSE
 %right FUN, ARROW
+%left SET
 
 %left OR
 %left AND
@@ -63,6 +64,7 @@ sexpr:
   | LET REC variable lvariable EQ expr IN expr  {     Let_rec($3, map_fun $4 $6, $8)      }
   | LET variable lvariable EQ expr IN expr      {     Let_in($2, map_fun $3 $5, $7)       }
   | FUN variable lvariable ARROW expr           {     Function_arg($2, map_fun $3 $5)     }
+  | variable SET expr                           {     Set($1, $3)                         }
   | variable                                    {     Variable($1)                        }
   | expr IMP expr                               {     Imp($1, $3)                         }
   | REF expr                                    {     Reference($2)                       }
