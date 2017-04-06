@@ -25,6 +25,7 @@ type expr =
   | Reference of expr
   | Deference of expr
   | Imp of expr * expr
+  | Set of variable * expr
   | Lt of expr * expr
   | Gt of expr * expr
   | Lte of expr * expr
@@ -78,6 +79,7 @@ let free_variable_list e =
     | Reference(e1) -> aux linked_v e1
     | Deference(e1) -> aux linked_v e1
     | Imp(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
+    | Set(v, e2) -> merge (aux linked_v (Variable(v))) (aux linked_v e2)
     | Lt(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
     | Gt(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
     | Lte(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)

@@ -20,7 +20,7 @@ functor (Dict : PushDictionary) ->
     type value =
       | Int of int
       | Closure of expr * value Dict.dict
-      | RefInt of int
+      | RefInt of int ref
     ;;
 
     type env = value Dict.dict;;
@@ -40,14 +40,14 @@ functor (Dict : PushDictionary) ->
     let printValue = function
       | Int(i) -> print_string "- : int = "; print_int i
       | Closure(f, e') -> print_string "- : function = "; PrintExpr.printExpr f
-      | RefInt(r) -> print_string "- : int ref = "; print_int r
+      | RefInt(r) -> print_string "- : int ref = "; print_int (!r)
     ;;
 
     let env_free_var : env -> variable list -> env = fun env l ->
       let e = create () in
       let rec aux = function
         | [] -> ()
-        | x::q -> PrintExpr.printVar x; push e x (search env x); aux q
+        | x::q -> push e x (search env x); aux q
       in aux l;
       e;;
     (*let env_free_var e l = copy e;;*)

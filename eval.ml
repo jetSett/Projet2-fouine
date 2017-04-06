@@ -35,7 +35,6 @@ let rec eval env = function
     return
   | Let_rec(f, expr_f, b) ->
     let naive = free_variable_list expr_f in
-    print_int (List.length naive);
     let vars = List.filter (fun v -> v <> f) naive in
     let env_rec = Env.env_free_var env vars in
     let closure = Env.Closure(expr_f, env_rec) in
@@ -78,9 +77,14 @@ let rec eval env = function
   | Minus(a, b) -> (eval env a) -$ (eval env b)
   | Times(a, b) -> (eval env a) *$ (eval env b)
   | Divide(a, b) -> (eval env a) /$ (eval env b)
-  | Reference(r) -> (match eval env r with Env.Int(i) -> Env.RefInt(i) | _ -> raise Not_An_Int)
-  | Deference(r) -> (match eval env r with Env.RefInt(i) -> Env.Int(i) | _ -> raise Not_A_Reference)
+  | Reference(r) -> (match eval env r with Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
+  | Deference(r) -> (match eval env r with Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
   | Imp(a, b) -> let _ = eval env a in eval env b
+  | Set(v, b) ->
+    let rvalue = match eval env b with Env.Int(i) -> i | _ -> raise Not_An_Int in
+    let lvalue = match Env.search env v with Env.RefInt(r) -> r | _ -> raise Not_A_Reference in
+    lvalue := rvalue;
+    Env.Int(rvalue)
   | Apply(f, arg) ->
     match eval env f with
     | Env.Closure(Function_arg(x, expr), e) ->

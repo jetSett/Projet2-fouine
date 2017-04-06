@@ -4,6 +4,7 @@
 
 rule token = parse
     | [' ' '\t' '\n']       {   token lexbuf            }
+    | eof                   {   END_PROG                }
 
     (* bool_expr *)
     | "||"                  {   OR                      }
@@ -31,7 +32,7 @@ rule token = parse
     | "let"                 {   LET                     }
     | "rec"                 {   REC                     }
     | "in"                  {   IN                      }
-    | ";;"                  {   END_PROG                }
+    | ";;"                  {   STP                     }
     | "if"                  {   IF                      }
     | "then"                {   THEN                    }
     | "else"                {   ELSE                    }

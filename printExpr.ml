@@ -25,8 +25,8 @@ let rec printExpr e =
   | TryWith(e1, Var(x), e2) -> ps "try "; printExpr e1; ps "with E "; ps x; ps " -> "; printExpr e2;
   | Const_bool(b) -> if b then ps "true" else ps "false"
   | Not(c) -> ps "not "; printExpr c
-  | And(a, b) -> printExpr a; ps "&&"; printExpr b
-  | Or(a, b) -> printExpr a; ps "||"; printExpr b
+  | And(a, b) -> printExpr a; ps " && "; printExpr b
+  | Or(a, b) -> printExpr a; ps " || "; printExpr b
   | Eq(a, b) -> printExpr a; ps " = "; printExpr b
   | Neq(a, b) -> printExpr a; ps " <> "; printExpr b
   | Const_int(x) -> print_int x
@@ -37,11 +37,12 @@ let rec printExpr e =
   | Apply(a, b) -> printExpr a; ps " "; printExpr b
   | Reference(e) -> print_string "ref "; printExpr e
   | Deference(r) -> print_string "!"; printExpr r
-  | Imp(a, b) -> printExpr a; print_string ";"; printExpr b
-  | Lt(a, b) -> printExpr a; print_string "<"; printExpr b
-  | Gt(a, b) -> printExpr a; print_string ">"; printExpr b
-  | Lte(a, b) -> printExpr a; print_string "<="; printExpr b
-  | Gte(a, b) -> printExpr a; print_string ">="; printExpr b
+  | Imp(a, b) -> printExpr a; print_string "; "; printExpr b
+  | Set(v, b) -> printVar v; print_string " := "; printExpr b
+  | Lt(a, b) -> printExpr a; print_string " < "; printExpr b
+  | Gt(a, b) -> printExpr a; print_string " > "; printExpr b
+  | Lte(a, b) -> printExpr a; print_string " <= "; printExpr b
+  | Gte(a, b) -> printExpr a; print_string " >= "; printExpr b
   );
   if not isAtomic
       then ps ")";;
