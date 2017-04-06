@@ -62,6 +62,9 @@ let free_variable_list e =
         then aux linked_v e1
         else aux (x::linked_v) e1
     | Not(e1) -> aux linked_v e1
+    | Raise(_) -> []
+    | TryWith(e1, x, e2) -> merge (aux linked_v e1) (aux (x::linked_v) e2)
+    | PrInt(e1) -> aux linked_v e1
     | And(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
     | Or(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
     | Eq(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
