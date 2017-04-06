@@ -10,5 +10,6 @@ let fibonacci n =
       b := !a + c;
       f (n-1)
     )
-  in f n; !b
-in prInt (fibonacci 5);;
+  in f n; !b;;
+
+prInt (fibonacci 5);;

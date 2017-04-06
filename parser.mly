@@ -2,8 +2,8 @@
   open Expression;;
 %}
 
-%token EOL
-%token END_PROG
+%token EOF
+%token STP END_PROG
 
 // expr
 %token LPARENT RPARENT
@@ -43,7 +43,8 @@
 %%
 
 main:
-  expr END_PROG { $1 }
+  | expr STP      { $1 }
+  | expr END_PROG { $1 }
 ;
 
 variable:
@@ -61,6 +62,8 @@ sexpr:
   | RAISE INT                                   {     Raise($2)                           }
   | PRINT expr                                  {     PrInt($2)                           }
   | TRY expr WITH EXCEPT variable ARROW expr    {     TryWith($2, $5, $7)                 }
+  | LET REC variable lvariable EQ expr STP expr {     Let_rec($3, map_fun $4 $6, $8)      }
+  | LET variable lvariable EQ expr STP expr     {     Let_in($2, map_fun $3 $5, $7)       }
   | LET REC variable lvariable EQ expr IN expr  {     Let_rec($3, map_fun $4 $6, $8)      }
   | LET variable lvariable EQ expr IN expr      {     Let_in($2, map_fun $3 $5, $7)       }
   | FUN variable lvariable ARROW expr           {     Function_arg($2, map_fun $3 $5)     }
