@@ -2,7 +2,6 @@ type variable = Var of string;;
 
 type expr =
   | Unit
-  | Raise of int
   | Const_int of int
   | Const_bool of bool
   | Variable of variable
@@ -10,6 +9,7 @@ type expr =
   | Let_rec of variable * expr * expr
   | Function_arg of variable * expr
   | Not of expr
+  | Raise of expr
   | IfThenElse of expr * expr * expr
   | TryWith of expr * variable * expr
   | PrInt of expr
@@ -63,7 +63,7 @@ let free_variable_list e =
         then aux linked_v e1
         else aux (x::linked_v) e1
     | Not(e1) -> aux linked_v e1
-    | Raise(_) -> []
+    | Raise(e1) -> aux linked_v e1
     | TryWith(e1, x, e2) -> merge (aux linked_v e1) (aux (x::linked_v) e2)
     | PrInt(e1) -> aux linked_v e1
     | And(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)

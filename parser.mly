@@ -59,7 +59,7 @@ lvariable:
 sexpr:
   | LPARENT RPARENT                             {     Unit                                }
   | LPARENT expr RPARENT                        {     $2                                  }
-  | RAISE INT                                   {     Raise($2)                           }
+  | RAISE expr                                  {     Raise($2)                           }
   | PRINT expr                                  {     PrInt($2)                           }
   | TRY expr WITH EXCEPT variable ARROW expr    {     TryWith($2, $5, $7)                 }
   | LET REC variable lvariable EQ expr STP expr {     Let_rec($3, map_fun $4 $6, $8)      }
