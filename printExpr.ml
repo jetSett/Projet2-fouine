@@ -1,4 +1,5 @@
 open Expression;;
+open SECD;;
 
 let printVar = function Var(x) -> print_string x;;
 
@@ -46,3 +47,35 @@ let rec printExpr e =
   );
   if not isAtomic
       then ps ")";;
+
+let rec printSECD = function
+  | [] -> ()
+  | [x] -> printInstruction x
+  | x::xs -> printInstruction x; print_string ";"; printSECD xs
+and printInstruction = function
+  (* ARITHMETIC *)
+  | ADD -> print_string "ADD"
+  | SUB -> print_string "SUB"
+  | MUL -> print_string "MUL"
+  | DIV -> print_string "DIV"
+  | CONST(i) -> print_string "CONST("; print_int i; print_string ")"
+  (* BOOLEANS *)
+  | AND -> print_string "AND"
+  | OR -> print_string "OR"
+  | NOT -> print_string "NOT"
+  | EQ -> print_string "EQ"
+  | NEQ -> print_string "NEQ"
+  | LT -> print_string "LT"
+  | GT -> print_string "GT"
+  | LTE -> print_string "LTE"
+  | GTE -> print_string "GTE"
+  (* OTHER *)
+  | LET(x) -> print_string "LET("; printVar x; print_string ")"
+  | ACCESS(x) -> print_string "ACCESS("; printVar x; print_string ")"
+  | CLOS(x, p) -> print_string "CLOS("; printVar x; print_string ", "; printSECD p; print_string ")"
+  | ENDLET -> print_string "ENDLET"
+  | APPLY -> print_string "APPLY"
+  | RET -> print_string "RET"
+  | IF_THEN_ELSE -> print_string "IF_THEN_ELSE"
+  | PR_INT -> print_string "PR_INT"
+;;

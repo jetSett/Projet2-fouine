@@ -19,10 +19,10 @@
 %token <int> INT
 %token PLUS MINUS DIVIDE TIMES
 
-%left LET, REC, IN
+%left LET REC IN
 %left IMP
-%left IF, THEN, ELSE
-%right FUN, ARROW
+%left IF THEN ELSE
+%right FUN ARROW
 %left SET
 
 %left OR
@@ -63,8 +63,8 @@ sexpr:
   | PRINT expr                                  {     PrInt($2)                           }
   | TRY expr WITH EXCEPT variable ARROW expr    {     TryWith($2, $5, $7)                 }
   | LET REC variable lvariable EQ expr STP expr {     Let_rec($3, map_fun $4 $6, $8)      }
-  | LET variable lvariable EQ expr STP expr     {     Let_in($2, map_fun $3 $5, $7)       }
   | LET REC variable lvariable EQ expr IN expr  {     Let_rec($3, map_fun $4 $6, $8)      }
+  | LET variable lvariable EQ expr STP expr     {     Let_in($2, map_fun $3 $5, $7)       }
   | LET variable lvariable EQ expr IN expr      {     Let_in($2, map_fun $3 $5, $7)       }
   | FUN variable lvariable ARROW expr           {     Function_arg($2, map_fun $3 $5)     }
   | variable SET expr                           {     Set($1, $3)                         }
@@ -84,15 +84,14 @@ sexpr:
 ;
 
 bexpr:
-  | expr                                        {     $1                                  }
-  | bexpr EQ bexpr                              {     Eq($1, $3)                          }
-  | bexpr NEQ bexpr                             {     Neq($1, $3)                         }
-  | bexpr LT bexpr                              {     Lt($1, $3)                          }
-  | bexpr GT bexpr                              {     Gt($1, $3)                          }
-  | bexpr LTE bexpr                             {     Lte($1, $3)                         }
-  | bexpr GTE bexpr                             {     Gte($1, $3)                         }
-  | bexpr AND bexpr                             {     And($1, $3)                         }
-  | bexpr OR bexpr                              {     Or($1, $3)                          }
+  | expr EQ expr                              {     Eq($1, $3)                          }
+  | expr NEQ expr                             {     Neq($1, $3)                         }
+  | expr LT expr                              {     Lt($1, $3)                          }
+  | expr GT expr                              {     Gt($1, $3)                          }
+  | expr LTE expr                             {     Lte($1, $3)                         }
+  | expr GTE expr                             {     Gte($1, $3)                         }
+  | expr AND expr                             {     And($1, $3)                         }
+  | expr OR expr                              {     Or($1, $3)                          }
   | NOT bexpr                                   {     Not($2)                             }
 ;
 
