@@ -22,7 +22,7 @@ and instruction =
   | LET of variable
   | ACCESS of variable
   | CLOS of variable * secd_program
-  | ENDLET
+  | ENDLET of variable
   | APPLY
   | RET
   | IF_THEN_ELSE
@@ -33,11 +33,11 @@ exception Not_Supported_Yet of expr;;
 
 let rec compile = function
   | Unit -> [CONST(0)]
-  | PrInt(e) -> [PR_INT]
+  | PrInt(e) -> (compile e) @ [PR_INT]
   | Variable(x) -> [ACCESS(x)]
-  | Let_in(x, e1, e2) -> (compile e1) @ [LET(x)] @ (compile e2) @ [ENDLET]
+  | Let_in(x, e1, e2) -> (compile e1) @ [LET(x)] @ (compile e2) @ [ENDLET(x)]
   | Function_arg(x, e) -> [CLOS(x, (compile e) @ [RET])]
-  | IfThenElse(c, a, b) -> (compile b) @ (compile a) @ (compile c) @ [IF_THEN_ELSE]
+  | IfThenElse(c, a, b) -> (compile b) @ (compile a) @ (compile c) @ [IF_THEN_ELSE] (* on the end, the stack : b, resulta, resultb, s *)
   | Const_bool(true) -> [CONST(1)]
   | Const_bool(false) -> [CONST(0)]
   | Not(c) -> (compile c) @ [NOT]

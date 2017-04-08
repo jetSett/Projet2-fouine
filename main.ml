@@ -2,6 +2,7 @@ open Lexer;;
 open PrintExpr;;
 open Eval;;
 open Environment;;
+open SECD_interpret;;
 open SECD;;
 
 let lexbuf = Lexing.from_channel stdin in
@@ -19,6 +20,7 @@ try
   let prog = compile result in
   printSECD prog;
   print_newline ();
+  interpret_SECD prog;
 with Not_Supported_Yet(e) as ex ->
   print_string "UNSUPPORTED : ";
   printExpr e;

@@ -73,7 +73,7 @@ and printInstruction = function
   | LET(x) -> print_string "LET("; printVar x; print_string ")"
   | ACCESS(x) -> print_string "ACCESS("; printVar x; print_string ")"
   | CLOS(x, p) -> print_string "CLOS("; printVar x; print_string ", "; printSECD p; print_string ")"
-  | ENDLET -> print_string "ENDLET"
+  | ENDLET(x) -> print_string "ENDLET("; printVar x; print_string ")"
   | APPLY -> print_string "APPLY"
   | RET -> print_string "RET"
   | IF_THEN_ELSE -> print_string "IF_THEN_ELSE"
