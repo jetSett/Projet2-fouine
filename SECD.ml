@@ -19,6 +19,9 @@ and instruction =
   | LTE
   | GTE
   (* OTHER *)
+  | REF
+  | DEREF
+  | SET of variable
   | LET of variable
   | ACCESS of variable
   | CLOS of variable * secd_program
@@ -60,10 +63,11 @@ let rec compile = function
   | Imp(a, b) -> (compile a) @ (compile b)
   | Raise(e) -> (compile e) @ [RAISE]
   | TryWith(e1, x, e2) -> TRYWITH(x, compile e2)::(compile e1)
+  | Reference(e) -> (compile e) @ [REF]
+  | Deference(r) -> (compile r) @ [DEREF]
+  | Set(v, b) -> (compile b) @ [SET(v)](* la pile ressemble à ça après : val, ref, s *)
   | _ as e -> raise(Not_Supported_Yet(e))
   (*
   | Let_rec(x, e1, e2) ->
-  | Reference(e) ->
-  | Deference(r) ->
-  | Set(v, b) ->*)
+  *)
 ;;

@@ -15,6 +15,7 @@ exception Not_An_Int of stack_value;;
 exception Not_A_Boolean of stack_value;;
 exception Not_An_Env of stack_value;;
 exception Not_A_Program of stack_value;;
+exception Not_A_Ref of stack_value;;
 exception Raise_Not_Catched of int;;
 
 let push_stack stack a =
@@ -49,6 +50,11 @@ let pop_stack_prog stack = let e = pop_stack stack in
   match e with
     | Program(c) -> c
     | _ -> raise (Not_A_Program e);;
+
+let pop_stack_ref stack = let e = pop_stack stack in
+  match e with
+    | RefInt(c) -> c
+    | _ -> raise (Not_A_Ref e);;
 
 let bool_to_intruct b = if b then Int(1) else Int(0);;
 
@@ -105,3 +111,13 @@ match prog with
                   SECD_env.push nEnv var (Int(value)); (* value of the exception in the new environment*)
                   env := nEnv; (* restauring the environment *)
                   interpret_SECD prog (* going to the "with" part *)
+  | REF::q -> let a = pop_stack_int stack in
+              push_stack stack (RefInt(ref a)); interpret_SECD q
+  | DEREF::q -> let r = pop_stack_ref stack in
+              push_stack stack (Int(!r)); interpret_SECD q
+  | SET(v)::q -> let a = match SECD_env.search !env v with
+                            | RefInt(r) -> r
+                            | _ as r -> raise (Not_A_Ref(r))
+                      in
+                let value = pop_stack_int stack in
+                a := value; interpret_SECD q

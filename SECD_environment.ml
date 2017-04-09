@@ -10,6 +10,7 @@ functor (Dict : PushDictionary) ->
       | Env of stack_value Dict.dict
       | Clot of variable * secd_program * stack_value Dict.dict
       | Program of secd_program
+      | RefInt of int ref
 
 
     type value = stack_value;;

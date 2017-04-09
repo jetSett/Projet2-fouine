@@ -80,4 +80,7 @@ and printInstruction = function
   | PR_INT -> print_string "PR_INT"
   | RAISE -> print_string "RAISE"
   | TRYWITH(Var(x), e2) -> print_string "TRYWITH("; print_string x; print_string ", "; printSECD e2; print_string ")"
+  | REF -> print_string "REF"
+  | DEREF -> print_string "DEREF"
+  | SET(Var(x)) -> print_string "SET("; print_string x; print_string ")"
 ;;
