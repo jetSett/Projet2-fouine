@@ -15,6 +15,7 @@ exception Not_An_Int of stack_value;;
 exception Not_A_Boolean of stack_value;;
 exception Not_An_Env of stack_value;;
 exception Not_A_Program of stack_value;;
+exception Raise_Not_Catched of int;;
 
 let push_stack stack a =
   stack := a::!stack;;
@@ -52,7 +53,7 @@ let pop_stack_prog stack = let e = pop_stack stack in
 let bool_to_intruct b = if b then Int(1) else Int(0);;
 
 let stack = ref []
-
+let tryWithStack = ref [] (* env*variable*program *)
 let env = ref (SECD_env.create ())
 
 let rec interpret_SECD prog =
@@ -61,7 +62,7 @@ match prog with
   | ADD::q -> let a1, a2 = pop_stack_int stack, pop_stack_int stack in push_stack stack (Int(a1 + a2)); interpret_SECD q
   | SUB::q -> let a1, a2 = pop_stack_int stack, pop_stack_int stack in push_stack stack (Int(a1 - a2)); interpret_SECD q
   | MUL::q -> let a1, a2 = pop_stack_int stack, pop_stack_int stack in push_stack stack (Int(a1 * a2)); interpret_SECD q
-  | DIV::q -> let a1, a2 = pop_stack_int stack, pop_stack_int stack in push_stack stack (Int(a1 / a2)); interpret_SECD q
+  | DIV::q -> let a1 = pop_stack_int stack in let a2 = pop_stack_int stack in push_stack stack (Int(a1 / a2)); interpret_SECD q
   | CONST(x)::q -> push_stack stack (Int(x)); interpret_SECD q
   (* BOOLEANS *)
   | AND::q -> let a1, a2 = pop_stack_bool stack, pop_stack_bool stack in push_stack stack (Int(a1*a2)); interpret_SECD q
@@ -69,10 +70,10 @@ match prog with
   | NOT::q -> let a = pop_stack_bool stack in push_stack stack (Int(1-a)); interpret_SECD q
   | EQ::q -> let a1, a2 = pop_stack_int stack, pop_stack_int stack in push_stack stack (bool_to_intruct (a1=a2)); interpret_SECD q
   | NEQ::q -> let a1, a2 = pop_stack_int stack, pop_stack_int stack in push_stack stack (bool_to_intruct (a1<>a2)); interpret_SECD q
-  | LT::q -> let a1, a2 = pop_stack_int stack, pop_stack_int stack in push_stack stack (bool_to_intruct (a1<a2)); interpret_SECD q
-  | GT::q -> let a1, a2 = pop_stack_int stack, pop_stack_int stack in push_stack stack (bool_to_intruct (a1>a2)); interpret_SECD q
-  | LTE::q -> let a1, a2 = pop_stack_int stack, pop_stack_int stack in push_stack stack (bool_to_intruct (a1<=a2)); interpret_SECD q
-  | GTE::q -> let a1, a2 = pop_stack_int stack, pop_stack_int stack in push_stack stack (bool_to_intruct (a1>=a2)); interpret_SECD q
+  | LT::q ->  let a1 = pop_stack_int stack in let a2 = pop_stack_int stack in push_stack stack (bool_to_intruct (a1<a2)); interpret_SECD q
+  | GT::q ->  let a1 = pop_stack_int stack in let a2 = pop_stack_int stack in push_stack stack (bool_to_intruct (a1>a2)); interpret_SECD q
+  | LTE::q -> let a1 = pop_stack_int stack in let a2 = pop_stack_int stack in push_stack stack (bool_to_intruct (a1<=a2)); interpret_SECD q
+  | GTE::q -> let a1 = pop_stack_int stack in let a2 = pop_stack_int stack in push_stack stack (bool_to_intruct (a1>=a2)); interpret_SECD q
   (* OTHER *)
   | LET(v)::q ->(* print_string "LET\n"; *)let a = pop_stack stack in SECD_env.push !env v a; interpret_SECD q
   | ACCESS(v)::q -> (*print_string "ACCESS\n"; *)let a = SECD_env.search !env v in push_stack stack a; interpret_SECD q
@@ -94,3 +95,13 @@ match prog with
                         push_stack stack (if boolean=1 then a else b);
                         interpret_SECD q
   | PR_INT::q -> let a = pop_stack_int stack in print_int a; print_string "\n"; interpret_SECD q
+  | TRYWITH(x, p)::q -> push_stack tryWithStack (SECD_env.copy !env, x, p); interpret_SECD q
+  | RAISE::q -> let value = pop_stack_int stack in
+                  let nEnv, var, prog =
+                  try
+                    pop_stack tryWithStack
+                  with EmpyStack -> raise (Raise_Not_Catched(value))
+                  in
+                  SECD_env.push nEnv var (Int(value)); (* value of the exception in the new environment*)
+                  env := nEnv; (* restauring the environment *)
+                  interpret_SECD prog (* going to the "with" part *)

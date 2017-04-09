@@ -78,4 +78,6 @@ and printInstruction = function
   | RET -> print_string "RET"
   | IF_THEN_ELSE -> print_string "IF_THEN_ELSE"
   | PR_INT -> print_string "PR_INT"
+  | RAISE -> print_string "RAISE"
+  | TRYWITH(Var(x), e2) -> print_string "TRYWITH("; print_string x; print_string ", "; printSECD e2; print_string ")"
 ;;

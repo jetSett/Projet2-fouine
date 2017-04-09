@@ -27,6 +27,8 @@ and instruction =
   | RET
   | IF_THEN_ELSE
   | PR_INT
+  | RAISE (* raise the value in the top of the stack *)
+  | TRYWITH of variable * secd_program (* the variable and the "with" expression *)
 ;;
 
 exception Not_Supported_Yet of expr;;
@@ -55,13 +57,13 @@ let rec compile = function
   | Times(a, b) -> (compile b) @ (compile a) @ [MUL]
   | Divide(a, b) -> (compile b) @ (compile a) @ [DIV]
   | Apply(a, b) -> (compile b) @ (compile a) @ [APPLY]
+  | Imp(a, b) -> (compile a) @ (compile b)
+  | Raise(e) -> (compile e) @ [RAISE]
+  | TryWith(e1, x, e2) -> TRYWITH(x, compile e2)::(compile e1)
   | _ as e -> raise(Not_Supported_Yet(e))
   (*
   | Let_rec(x, e1, e2) ->
-  | TryWith(e1, Var(x), e2) ->
-  | Raise(x) ->
   | Reference(e) ->
   | Deference(r) ->
-  | Imp(a, b) ->
   | Set(v, b) ->*)
 ;;
