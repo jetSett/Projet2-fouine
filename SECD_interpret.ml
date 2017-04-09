@@ -100,7 +100,8 @@ match prog with
   | IF_THEN_ELSE::q -> let boolean = pop_stack_bool stack and a = pop_stack stack and b = pop_stack stack in
                         push_stack stack (if boolean=1 then a else b);
                         interpret_SECD q
-  | PR_INT::q -> let a = pop_stack_int stack in print_int a; print_string "\n"; interpret_SECD q
+  | PR_INT::q -> let a = pop_stack_int stack in print_int a; print_string "\n";
+                        push_stack stack (Int a); interpret_SECD q
   | TRYWITH(x, p)::q -> push_stack tryWithStack (SECD_env.copy !env, x, p); interpret_SECD q
   | RAISE::q -> let value = pop_stack_int stack in
                   let nEnv, var, prog =
