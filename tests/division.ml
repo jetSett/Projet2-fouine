@@ -12,6 +12,6 @@ let modulo x y =
   prInt (modulo 25 5);
   prInt (modulo 112 3);
   prInt (modulo 19 0)
-with E error_code -> prInt 2);
+with E error_code -> prInt error_code);
 
 let pi = 314159 in modulo pi 42;;
