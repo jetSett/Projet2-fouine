@@ -86,7 +86,7 @@ match prog with
   | LTE::q -> let a1 = pop_stack_int stack in let a2 = pop_stack_int stack in push_stack stack (bool_to_intruct (a1<=a2)); interpret_SECD q
   | GTE::q -> let a1 = pop_stack_int stack in let a2 = pop_stack_int stack in push_stack stack (bool_to_intruct (a1>=a2)); interpret_SECD q
   (* OTHER *)
-  | LET(v)::q ->(* print_string "LET\n"; *)let a = pop_stack stack in SECD_env.push !env v a; interpret_SECD q
+  | LET(v)::q ->let a = pop_stack stack in SECD_env.push !env v a; interpret_SECD q
   | LET_REC(f)::q -> let var, funct, envFonct = pop_stack_clot stack in
                      while (SECD_env.mem envFonct f) do
                       SECD_env.pop envFonct f; (* removing f from the environment of the function *)
@@ -96,7 +96,10 @@ match prog with
                      SECD_env.push !env f nClot;
                      interpret_SECD q
   | ACCESS(v)::q -> let a = SECD_env.search !env v in push_stack stack a; interpret_SECD q
-  | CLOS (v, prog)::q-> push_stack stack (Clot(v, prog, SECD_env.copy !env)); interpret_SECD q
+  | CLOS (v, prog)::q-> let var = free_variable_list prog in
+                        let varSansv = List.filter (fun a -> a<>v) var in
+                        push_stack stack (Clot(v, prog, SECD_env.env_free_var !env varSansv));
+                        interpret_SECD q
   | ENDLET(x)::q -> SECD_env.pop !env x; interpret_SECD q
   | APPLY::q -> let x, prog, newEnv = pop_stack_clot stack in let v = pop_stack stack in
                 (* first, saving our state *)
