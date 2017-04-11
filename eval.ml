@@ -78,7 +78,11 @@ let rec eval env = function
   | Divide(a, b) -> (eval env a) /$ (eval env b)
   | Reference(r) -> (match eval env r with Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
   | Deference(r) -> (match eval env r with Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
-  | Imp(a, b) -> let _ = eval env a in eval env b
+  | Imp(a, b) ->
+    let before = List.length !exceptionStack in
+    let eval_a = eval env a in
+    let after = List.length !exceptionStack in
+    if before = after then eval env b else eval_a
   | Set(v, b) ->
     let rvalue = match eval env b with Env.Int(i) -> i | _ -> raise Not_An_Int in
     let lvalue = match Env.search env v with Env.RefInt(r) -> r | _ -> raise Not_A_Reference in
