@@ -61,6 +61,7 @@ let run () =
         printSECD stdout prog
       );
       if !machine_enable then (
+        print_string "stdout of SECD machine :\n";
         interpret_SECD prog
       );
       if !interm_enable then (
