@@ -1,5 +1,5 @@
-let compose f x = f (f x);;
+let composeTwice f x = f (f x);;
 let addOne x = x + 1;;
-let addTwo = compose addOne;;
+let addTwo = composeTwice addOne;;
 
 prInt (addTwo 0);;
