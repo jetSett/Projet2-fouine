@@ -12,4 +12,4 @@ let fibonacci n =
     )
   in f n; !b;;
 
-prInt (fibonacci 25);;
+prInt (fibonacci 10);;

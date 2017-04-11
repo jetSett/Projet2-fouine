@@ -111,7 +111,7 @@ match prog with
                 env := e; (* we go back to the env *)
                 interpret_SECD c (* we return to our execution *)
   | IF_THEN_ELSE(a, b)::q -> let boolean = pop_stack_bool stack in
-                        let c = (if boolean=1 then a else b) in
+                        let c = (if boolean<>0 then a else b) in
                         interpret_SECD (c@q)
   | PR_INT::q -> let a = pop_stack_int stack in print_int a; print_string "\n";
                         push_stack stack (Int a); interpret_SECD q

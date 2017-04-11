@@ -1,7 +1,6 @@
 open Expression;;
 open SECD;;
-
-let printVar = function Var(x) -> print_string x;;
+open Printf;;
 
 let isAtom = function
   | Variable(_) -> true
@@ -9,79 +8,85 @@ let isAtom = function
   | Const_bool(_) -> true
   | _ -> false;;
 
-let rec printExpr e =
-  let ps = print_string in
-  let isAtomic = isAtom e in
-  if not isAtomic
-      then ps "(";
-  (match e with
-  | Unit -> ()
-  | Raise(e) -> ps "raise "; printExpr e;
-  | PrInt(e) -> ps "prInt "; printExpr e;
-  | Variable(x) -> printVar x
-  | Let_in(x, e1, e2) -> ps "let "; printVar x; ps " = "; printExpr e1; ps " in "; printExpr e2
-  | Let_rec(x, e1, e2) -> ps "let rec "; printVar x; ps " = "; printExpr e1; ps " in "; printExpr e2
-  | Function_arg(x, e) -> ps "fun "; printVar x; ps " -> "; printExpr e
-  | IfThenElse(c, a, b) -> ps "if "; printExpr c; ps " then "; printExpr a; ps " else "; printExpr b
-  | TryWith(e1, Var(x), e2) -> ps "try "; printExpr e1; ps "with E "; ps x; ps " -> "; printExpr e2;
-  | Const_bool(b) -> if b then ps "true" else ps "false"
-  | Not(c) -> ps "not "; printExpr c
-  | And(a, b) -> printExpr a; ps " && "; printExpr b
-  | Or(a, b) -> printExpr a; ps " || "; printExpr b
-  | Eq(a, b) -> printExpr a; ps " = "; printExpr b
-  | Neq(a, b) -> printExpr a; ps " <> "; printExpr b
-  | Const_int(x) -> print_int x
-  | Plus(a, b) -> printExpr a; ps " + "; printExpr b
-  | Minus(a, b) -> printExpr a; ps " - "; printExpr b
-  | Times(a, b) -> printExpr a; ps "*"; printExpr b
-  | Divide(a, b) -> printExpr a; ps "/"; printExpr b
-  | Apply(a, b) -> printExpr a; ps " "; printExpr b
-  | Reference(e) -> print_string "ref "; printExpr e
-  | Deference(r) -> print_string "!"; printExpr r
-  | Imp(a, b) -> printExpr a; print_string "; "; printExpr b
-  | Set(v, b) -> printVar v; print_string " := "; printExpr b
-  | Lt(a, b) -> printExpr a; print_string " < "; printExpr b
-  | Gt(a, b) -> printExpr a; print_string " > "; printExpr b
-  | Lte(a, b) -> printExpr a; print_string " <= "; printExpr b
-  | Gte(a, b) -> printExpr a; print_string " >= "; printExpr b
-  );
-  if not isAtomic
-      then ps ")";;
+let printExpr channel e =
+  let ps s = fprintf channel "%s" s in
+  let printVar = function Var(x) -> ps x in
+  let rec prE e =
+    let isAtomic = isAtom e in
+    if not isAtomic
+        then ps "(";
+    (match e with
+    | Unit -> ()
+    | Raise(e) -> ps "raise "; prE e;
+    | PrInt(e) -> ps "prInt "; prE e;
+    | Variable(x) -> printVar x
+    | Let_in(x, e1, e2) -> ps "let "; printVar x; ps " = "; prE e1; ps " in "; prE e2
+    | Let_rec(x, e1, e2) -> ps "let rec "; printVar x; ps " = "; prE e1; ps " in "; prE e2
+    | Function_arg(x, e) -> ps "fun "; printVar x; ps " -> "; prE e
+    | IfThenElse(c, a, b) -> ps "if "; prE c; ps " then "; prE a; ps " else "; prE b
+    | TryWith(e1, Var(x), e2) -> ps "try "; prE e1; ps "with E "; ps x; ps " -> "; prE e2;
+    | Const_bool(b) -> if b then ps "true" else ps "false"
+    | Not(c) -> ps "not "; prE c
+    | And(a, b) -> prE a; ps " && "; prE b
+    | Or(a, b) -> prE a; ps " || "; prE b
+    | Eq(a, b) -> prE a; ps " = "; prE b
+    | Neq(a, b) -> prE a; ps " <> "; prE b
+    | Const_int(x) -> print_int x
+    | Plus(a, b) -> prE a; ps " + "; prE b
+    | Minus(a, b) -> prE a; ps " - "; prE b
+    | Times(a, b) -> prE a; ps "*"; prE b
+    | Divide(a, b) -> prE a; ps "/"; prE b
+    | Apply(a, b) -> prE a; ps " "; prE b
+    | Reference(e) -> ps "ref "; prE e
+    | Deference(r) -> ps "!"; prE r
+    | Imp(a, b) -> prE a; ps "; "; prE b
+    | Set(v, b) -> printVar v; ps " := "; prE b
+    | Lt(a, b) -> prE a; ps " < "; prE b
+    | Gt(a, b) -> prE a; ps " > "; prE b
+    | Lte(a, b) -> prE a; ps " <= "; prE b
+    | Gte(a, b) -> prE a; ps " >= "; prE b
+    );
+    if not isAtomic
+        then ps ")"
+in prE e; ps "\n";;
 
-let rec printSECD = function
-  | [] -> ()
-  | [x] -> printInstruction x
-  | x::xs -> printInstruction x; print_string ";"; printSECD xs
-and printInstruction = function
-  (* ARITHMETIC *)
-  | ADD -> print_string "ADD"
-  | SUB -> print_string "SUB"
-  | MUL -> print_string "MUL"
-  | DIV -> print_string "DIV"
-  | CONST(i) -> print_string "CONST("; print_int i; print_string ")"
-  (* BOOLEANS *)
-  | AND -> print_string "AND"
-  | OR -> print_string "OR"
-  | NOT -> print_string "NOT"
-  | EQ -> print_string "EQ"
-  | NEQ -> print_string "NEQ"
-  | LT -> print_string "LT"
-  | GT -> print_string "GT"
-  | LTE -> print_string "LTE"
-  | GTE -> print_string "GTE"
-  (* OTHER *)
-  | LET(x) -> print_string "LET("; printVar x; print_string ")"
-  | LET_REC(x) -> print_string "LET_REC("; printVar x; print_string ")"
-  | ACCESS(x) -> print_string "ACCESS("; printVar x; print_string ")"
-  | CLOS(x, p) -> print_string "CLOS("; printVar x; print_string ", "; printSECD p; print_string ")"
-  | ENDLET(x) -> print_string "ENDLET("; printVar x; print_string ")"
-  | APPLY -> print_string "APPLY"
-  | RET -> print_string "RET"
-  | IF_THEN_ELSE(a, b) -> print_string "IF_THEN("; printSECD a; print_string", ELSE("; printSECD b; print_string ")"
-  | PR_INT -> print_string "PR_INT"
-  | RAISE -> print_string "RAISE"
-  | TRYWITH(Var(x), e2) -> print_string "TRYWITH("; print_string x; print_string ", "; printSECD e2; print_string ")"
-  | REF -> print_string "REF"
-  | DEREF -> print_string "DEREF"
-  | SET(Var(x)) -> print_string "SET("; print_string x; print_string ")"
-;;
+let printSECD channel e =
+  let ps s = fprintf channel "%s" s in
+  let printVar = function Var(x) -> ps x in
+  let rec prS = function
+    | [] -> ()
+    | [x] -> printInstruction x
+    | x::xs -> printInstruction x; ps ";"; prS xs
+  and printInstruction = function
+    (* ARITHMETIC *)
+    | ADD -> ps "ADD"
+    | SUB -> ps "SUB"
+    | MUL -> ps "MUL"
+    | DIV -> ps "DIV"
+    | CONST(i) -> ps "CONST("; fprintf channel "%d" i; ps ")"
+    (* BOOLEANS *)
+    | AND -> ps "AND"
+    | OR -> ps "OR"
+    | NOT -> ps "NOT"
+    | EQ -> ps "EQ"
+    | NEQ -> ps "NEQ"
+    | LT -> ps "LT"
+    | GT -> ps "GT"
+    | LTE -> ps "LTE"
+    | GTE -> ps "GTE"
+    (* OTHER *)
+    | LET(x) -> ps "LET("; printVar x; ps ")"
+    | LET_REC(x) -> ps "LET_REC("; printVar x; ps ")"
+    | ACCESS(x) -> ps "ACCESS("; printVar x; ps ")"
+    | CLOS(x, p) -> ps "CLOS("; printVar x; ps ", "; prS p; ps ")"
+    | ENDLET(x) -> ps "ENDLET("; printVar x; ps ")"
+    | APPLY -> ps "APPLY"
+    | RET -> ps "RET"
+    | IF_THEN_ELSE(a, b) -> ps "IF_THEN("; prS a; ps", ELSE("; prS b; ps ")"
+    | PR_INT -> ps "PR_INT"
+    | RAISE -> ps "RAISE"
+    | TRYWITH(Var(x), e2) -> ps "TRYWITH("; ps x; ps ", "; prS e2; ps ")"
+    | REF -> ps "REF"
+    | DEREF -> ps "DEREF"
+    | SET(Var(x)) -> ps "SET("; ps x; ps ")"
+  in prS e; ps "\n";;

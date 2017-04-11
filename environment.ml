@@ -40,7 +40,7 @@ functor (Dict : PushDictionary) ->
 
     let printValue = function
       | Int(i) -> print_string "- : int = "; print_int i
-      | Closure(f, e') -> print_string "- : function = "; PrintExpr.printExpr f
+      | Closure(f, e') -> print_string "- : function = "; PrintExpr.printExpr stdout f
       | RefInt(r) -> print_string "- : int ref = "; print_int (!r)
     ;;
 
