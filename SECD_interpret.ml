@@ -64,7 +64,7 @@ let pop_stack_ref stack = let e = pop_stack stack in
 let bool_to_intruct b = if b then Int(1) else Int(0);;
 
 let stack = ref [] (* the stack of the SECD *)
-let tryWithStack = ref [] (* env*variable*program *)
+let tryWithStack = ref [] (* env*stack*variable*program *)
 let env = ref (SECD_env.create ())
 
 let rec interpret_SECD prog =
@@ -118,13 +118,14 @@ match prog with
                         interpret_SECD (c@q)
   | PR_INT::q -> let a = pop_stack_int stack in print_int a; print_string "\n";
                         push_stack stack (Int a); interpret_SECD q
-  | TRYWITH(x, p)::q -> push_stack tryWithStack (SECD_env.copy !env, x, p); interpret_SECD q
+  | TRYWITH(x, p)::q -> push_stack tryWithStack (SECD_env.copy !env, !stack, x, p); interpret_SECD q
   | RAISE::q -> let value = pop_stack_int stack in
-                  let nEnv, var, prog =
+                  let nEnv, nStack, var, prog =
                   try
                     pop_stack tryWithStack
                   with EmpyStack -> raise (Raise_Not_Catched(value))
                   in
+                  stack := nStack;
                   SECD_env.push nEnv var (Int(value)); (* value of the exception in the new environment*)
                   env := nEnv; (* restauring the environment *)
                   interpret_SECD prog (* going to the "with" part *)
