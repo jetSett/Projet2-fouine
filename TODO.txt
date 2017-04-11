@@ -1,0 +1,11 @@
+Yop ! voici ce qu'il te reste à faire
+
+- Rajouter les options en ligne de commande ULTRA IMPORTANT FAIS LE EN PREMIER
+- Faire le rapport (j'ai commencé très vite fais...)
+- Faire 2-3 fichiers de tests en plus pour montrer que ça marche
+- Refaire la fonction "free_variable_list" pour qu'elle ne liste que les variables libres d'un programme
+- Dormir un coup parce que tu l'as mérité
+
+À priori ma murder terminera pas trop tard (vers 22h-23h) du coup je passerais en salle machine à ce moment là pour te voir et faire le point (et quelques derniers ajustements si besoin)
+
+Courage ma poule <3

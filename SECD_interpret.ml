@@ -46,6 +46,7 @@ let pop_stack_env stack = let e = pop_stack stack in
     | Env(e) -> e
     | _ -> raise (Not_An_Env e);;
 
+(* the idea is to pop everything on the top of the stack until we are done (we encounter an environment) *)
 let pop_stack_ret stack = let x = pop_stack stack in
   let rec aux s = match s with
     | Program(c)::Env(e)::q -> stack := q; c, e
@@ -94,10 +95,10 @@ match prog with
                      SECD_env.push envFonct f nClot;
                      SECD_env.push !env f nClot;
                      interpret_SECD q
-  | ACCESS(v)::q -> (*print_string "ACCESS\n"; *)let a = SECD_env.search !env v in push_stack stack a; interpret_SECD q
-  | CLOS (v, prog)::q->(* print_string "CLOS\n"; *)push_stack stack (Clot(v, prog, SECD_env.copy !env)); interpret_SECD q
-  | ENDLET(x)::q -> (*print_string "ENDLET\n"; *)SECD_env.pop !env x; interpret_SECD q
-  | APPLY::q -> (*print_string "APPLY\n"; *)let x, prog, newEnv = pop_stack_clot stack in let v = pop_stack stack in
+  | ACCESS(v)::q -> let a = SECD_env.search !env v in push_stack stack a; interpret_SECD q
+  | CLOS (v, prog)::q-> push_stack stack (Clot(v, prog, SECD_env.copy !env)); interpret_SECD q
+  | ENDLET(x)::q -> SECD_env.pop !env x; interpret_SECD q
+  | APPLY::q -> let x, prog, newEnv = pop_stack_clot stack in let v = pop_stack stack in
                 (* first, saving our state *)
                 push_stack stack (Env(!env)); (* pushing the old env *)
                 push_stack stack (Program(q)); (* pushing our state in the program *)
@@ -105,7 +106,7 @@ match prog with
                 SECD_env.push newEnv x v; (* update the new env *)
                 env := newEnv; (* changing our environment *)
                 interpret_SECD prog (* continuing *)
-  | RET::_ -> (*print_string "RET\n"; *)let v, c, e = (pop_stack_ret stack) in
+  | RET::_ -> let v, c, e = (pop_stack_ret stack) in
                 push_stack stack v; (* we add the return value on the stack *)
                 env := e; (* we go back to the env *)
                 interpret_SECD c (* we return to our execution *)
