@@ -53,6 +53,15 @@ in prE e; ps "\n";;
 let printSECD channel e =
   let ps s = fprintf channel "%s" s in
   let printVar = function Var(x) -> ps x in
+  let i = ref 0 in
+  let print_ind () =
+    ps "\n";
+    for j=1 to !i do
+      ps "  ";
+    done
+  in
+  let ind () = incr i; print_ind () in
+  let dnd () = decr i; print_ind () in
   let rec prS = function
     | [] -> ()
     | [x] -> printInstruction x
@@ -75,17 +84,17 @@ let printSECD channel e =
     | LTE -> ps "LTE"
     | GTE -> ps "GTE"
     (* OTHER *)
-    | LET(x) -> ps "LET("; printVar x; ps ")"
-    | LET_REC(x) -> ps "LET_REC("; printVar x; ps ")"
+    | LET(x) -> print_ind (); ps "LET("; printVar x; ps ")"; ind ()
+    | LET_REC(x) -> print_ind (); ps "LET_REC("; printVar x; ps ")"; ind ()
     | ACCESS(x) -> ps "ACCESS("; printVar x; ps ")"
-    | CLOS(x, p) -> ps "CLOS("; printVar x; ps ", "; prS p; ps ")"
-    | ENDLET(x) -> ps "ENDLET("; printVar x; ps ")"
+    | CLOS(x, p) -> ps "CLOS("; printVar x; ps ", "; ind (); prS p; ps ")"
+    | ENDLET(x) -> dnd (); ps "ENDLET("; printVar x; ps ")"; print_ind ()
     | APPLY -> ps "APPLY"
-    | RET -> ps "RET"
-    | IF_THEN_ELSE(a, b) -> ps "IF_THEN("; prS a; ps", ELSE("; prS b; ps ")"
+    | RET -> ps "RET"; dnd ()
+    | IF_THEN_ELSE(a, b) -> ps "IF_THEN("; ind (); prS a; dnd (); ps", ELSE("; ind (); prS b; dnd (); ps ")"
     | PR_INT -> ps "PR_INT"
     | RAISE -> ps "RAISE"
-    | TRYWITH(Var(x), e2) -> ps "TRYWITH("; ps x; ps ", "; prS e2; ps ")"
+    | TRYWITH(Var(x), e2) -> ps "TRYWITH("; ind (); ps x; dnd (); ps ", "; ind (); prS e2; dnd (); ps ")"
     | REF -> ps "REF"
     | DEREF -> ps "DEREF"
     | SET(Var(x)) -> ps "SET("; ps x; ps ")"

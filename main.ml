@@ -49,6 +49,7 @@ let run () =
       print_newline ()
     end;
 
+  print_string "stdout of ./fouine :\n";
   let value = eval (Env.create ()) result in
   Env.printValue value;
   print_newline ();
