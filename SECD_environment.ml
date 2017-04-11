@@ -35,7 +35,8 @@ functor (Dict : PushDictionary) ->
       let e = create () in
       let rec aux = function
         | [] -> ()
-        | x::q -> push e x (search env x); aux q
+        | x::q when mem env x -> push e x (search env x); aux q
+        | x::q -> aux q
       in aux l;
       e;;
     (*let env_free_var e l = copy e;;*)

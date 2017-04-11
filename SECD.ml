@@ -35,17 +35,41 @@ and instruction =
   | TRYWITH of variable * secd_program (* the variable and the "with" expression *)
 ;;
 
+let rec print_list = function
+  | Var(x)::q -> print_string x; print_string "\n"; print_list q;
+  | [] -> print_string "\n"
 
-(* for the moment, all the variables *)
-let rec free_variable_list prog =
-  match prog with
-    | [] -> []
-    | SET(v)::q -> v::(free_variable_list q)
-    | LET(v)::q -> v::(free_variable_list q)
-    | ACCESS(v)::q -> v::(free_variable_list q)
-    | CLOS(v, p)::q -> v::(free_variable_list p)@(free_variable_list q)
-    | TRYWITH(v, p)::q -> v::(free_variable_list p)@(free_variable_list q)
-    | _::q -> free_variable_list q
+let free_variable_list prog =
+  let rec merge l1 = function
+    | [] -> l1
+    | x::q when List.mem x l1 -> merge l1 q
+    | x::q -> merge (x::l1) q
+  in
+  let rec aux prog linked =
+    match prog with
+      | [] -> []
+
+      | SET(v)::q when not (List.mem v linked) -> v::(aux q (linked))
+      | SET(v)::q -> aux q linked
+
+      | IF_THEN_ELSE(p1, p2)::q -> merge (aux q linked) (merge (aux p1 linked) (aux p2 linked))
+
+      | LET(v)::q -> aux q (if List.mem v linked then linked else (v::linked))
+      | LET_REC(v)::q -> aux q (if List.mem v linked then linked else (v::linked))
+
+
+      | ENDLET(v)::q -> let b = ref true in
+                        let nLinked = List.filter (fun a -> if !b then (if a<>v then (b:= false; false) else true) else true ) linked in (* remove the first occurence of v*)
+                        aux q nLinked
+
+      | ACCESS(v)::q when not (List.mem v linked) -> v::(aux q linked)
+      | ACCESS(v)::q -> aux q linked
+
+      | CLOS(v, p)::q -> merge (aux p (v::linked)) (aux q linked)
+
+      | TRYWITH(v, p)::q -> merge (aux p linked) (aux q (v::linked))
+      | _::q -> aux q linked in
+    aux prog []
 
 exception Not_Supported_Yet of expr;;
 
