@@ -14,6 +14,7 @@ module Dictpush_hashTbl = struct
   let push e x v = Tbl.add e x v
   let replace e x v = Tbl.replace e x v
   let search e x = Tbl.find e x
+  let mem e x = Tbl.mem e x
   let pop e x = Tbl.remove e x
   let copy e = Tbl.copy e
 end;;

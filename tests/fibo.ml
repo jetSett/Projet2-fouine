@@ -1,9 +1,9 @@
 let fibonacci n =
-  let a = ref 1 in
+  let a = ref 0 in
   let b = ref 1 in
   let rec f n =
     if n <= 1
-    then 0
+    then ()
     else (
       let c = !a in
       a := !b;
@@ -12,4 +12,4 @@ let fibonacci n =
     )
   in f n; !b;;
 
-prInt (fibonacci 5);;
+prInt (fibonacci 25);;

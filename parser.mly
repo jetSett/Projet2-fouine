@@ -11,6 +11,8 @@
 %token TRY WITH EXCEPT RAISE PRINT
 %token <string> VAR
 
+%left PRINT
+
 // bool_expr
 %token TRUE FALSE
 %token EQ NEQ OR AND NOT GT LT GTE LTE
@@ -59,8 +61,6 @@ lvariable:
 sexpr:
   | LPARENT RPARENT                             {     Unit                                }
   | LPARENT expr RPARENT                        {     $2                                  }
-  | RAISE expr                                  {     Raise($2)                           }
-  | PRINT expr                                  {     PrInt($2)                           }
   | TRY expr WITH EXCEPT variable ARROW expr    {     TryWith($2, $5, $7)                 }
   | LET REC variable lvariable EQ expr STP expr {     Let_rec($3, map_fun $4 $6, $8)      }
   | LET REC variable lvariable EQ expr IN expr  {     Let_rec($3, map_fun $4 $6, $8)      }
@@ -78,6 +78,8 @@ sexpr:
   | expr TIMES expr                             {     Times($1, $3)                       }
   | expr DIVIDE expr                            {     Divide($1, $3)                      }
   | MINUS expr %prec UMINUS                     {     Minus(Const_int(0), $2)             }
+  | RAISE expr                                  {     Raise($2)                           }
+  | PRINT expr                                  {     PrInt($2)                           }
   | INT                                         {     Const_int($1)                       }
   | TRUE                                        {     Const_bool(true)                    }
   | FALSE                                       {     Const_bool(false)                   }

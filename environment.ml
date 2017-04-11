@@ -8,6 +8,7 @@ module type PushDictionary = sig
   val push : 'a dict -> variable -> 'a -> unit
   val replace : 'a dict -> variable -> 'a -> unit
   val search : 'a dict -> variable -> 'a
+  val mem : 'a dict -> variable -> bool
   val pop : 'a dict -> variable -> unit
 
   val copy : 'a dict -> 'a dict

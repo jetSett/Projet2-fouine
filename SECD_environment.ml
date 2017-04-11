@@ -25,6 +25,8 @@ functor (Dict : PushDictionary) ->
 
     let search : env -> variable -> value = Dict.search;;
 
+    let mem : env -> variable -> bool = Dict.mem;;
+
     let pop : env -> variable -> unit = Dict.pop;;
 
     let copy : env -> env = Dict.copy;;
