@@ -24,7 +24,12 @@ let (>=$ ) a b = match a, b with | Env.Int(a), Env.Int(b) -> cond (a >= b) | _ -
 
 let exceptionStack = ref [] (* stack of environment*variable*expr for exception handling  *)
 
-let rec eval env = function
+let rec handle env a f = (*to interrupt computation when an exception rises*)
+  let before = List.length !exceptionStack in
+  let eval_a = eval env a in
+  let after = List.length !exceptionStack in
+  if before = after then f eval_a else eval_a
+and eval env = function
   | Unit -> Env.Int(0)
   | Raise(e) -> let result = eval env e in
       (match !exceptionStack with
@@ -41,10 +46,10 @@ let rec eval env = function
     return
   | Let_rec(f, expr_f, b) ->
     let naive = free_variable_list expr_f in
-    let vars = List.filter (fun v -> v <> f) naive in
+    let vars = List.filter (fun v -> v <> f) naive in (*f is not a free variable*)
     let env_rec = Env.env_free_var env vars in
-    let closure = Env.Closure(expr_f, env_rec) in
-    Env.push env_rec f closure;
+    let closure = Env.Closure(expr_f, env_rec) in (*create closure c with env_rec*)
+    Env.push env_rec f closure; (*push c into env_rec*)
     Env.push env f closure;
     let return = eval env b in
     Env.pop env f;
@@ -63,26 +68,22 @@ let rec eval env = function
   | Const_bool(false) -> Env.Int(0)
   | Const_bool(true) -> Env.Int(1)
   | Not(b) -> eval env b
-  | And(a, b) -> (eval env a) &&$ (eval env b)
-  | Or(a, b) -> (eval env a) ||$ (eval env b)
-  | Eq(a, b) -> cond ((eval env a) = (eval env b))
-  | Neq(a, b) -> cond ((eval env a) <> (eval env b))
-  | Lt(a, b) -> (eval env a) <$ (eval env b)
-  | Gt(a, b) -> (eval env a) >$ (eval env b)
-  | Lte(a, b) -> (eval env a) <=$ (eval env b)
-  | Gte(a, b) -> (eval env a) >=$ (eval env b)
+  | And(a, b) -> handle env a (fun eval_a -> (eval env a) &&$ (eval env b))
+  | Or(a, b) -> handle env a (fun eval_a -> (eval env a) ||$ (eval env b))
+  | Eq(a, b) -> handle env a (fun eval_a -> cond ((eval env a) = (eval env b)))
+  | Neq(a, b) -> handle env a (fun eval_a -> cond ((eval env a) <> (eval env b)))
+  | Lt(a, b) -> handle env a (fun eval_a -> (eval env a) <$ (eval env b))
+  | Gt(a, b) -> handle env a (fun eval_a -> (eval env a) >$ (eval env b))
+  | Lte(a, b) -> handle env a (fun eval_a -> (eval env a) <=$ (eval env b))
+  | Gte(a, b) -> handle env a (fun eval_a -> (eval env a) >=$ (eval env b))
   | Const_int(i) -> Env.Int(i)
-  | Plus(a, b) -> (eval env a) +$ (eval env b)
-  | Minus(a, b) -> (eval env a) -$ (eval env b)
-  | Times(a, b) -> (eval env a) *$ (eval env b)
-  | Divide(a, b) -> (eval env a) /$ (eval env b)
+  | Plus(a, b) -> handle env a (fun eval_a -> (eval env a) +$ (eval env b))
+  | Minus(a, b) -> handle env a (fun eval_a -> (eval env a) -$ (eval env b))
+  | Times(a, b) -> handle env a (fun eval_a -> (eval env a) *$ (eval env b))
+  | Divide(a, b) -> handle env a (fun eval_a -> (eval env a) /$ (eval env b))
   | Reference(r) -> (match eval env r with Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
   | Deference(r) -> (match eval env r with Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
-  | Imp(a, b) ->
-    let before = List.length !exceptionStack in
-    let eval_a = eval env a in
-    let after = List.length !exceptionStack in
-    if before = after then eval env b else eval_a
+  | Imp(a, b) -> handle env a (fun eval_a -> eval env b)
   | Set(v, b) ->
     let rvalue = match eval env b with Env.Int(i) -> i | _ -> raise Not_An_Int in
     let lvalue = match Env.search env v with Env.RefInt(r) -> r | _ -> raise Not_A_Reference in
