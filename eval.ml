@@ -39,11 +39,12 @@ and eval env = function
   | Variable(x) ->
     let v = Env.search env x in v
   | Let_in(x, expr_x, b) ->
-    let val_x = eval env expr_x in
-    Env.push env x val_x;
-    let return = eval env b in
-    Env.pop env x;
-    return
+    handle env expr_x (fun val_x ->
+        Env.push env x val_x;
+        let return = eval env b in
+        Env.pop env x;
+        return
+      )
   | Let_rec(f, expr_f, b) ->
     let naive = free_variable_list expr_f in
     let vars = List.filter (fun v -> v <> f) naive in (*f is not a free variable*)
@@ -54,46 +55,61 @@ and eval env = function
     let return = eval env b in
     Env.pop env f;
     return
-  | PrInt(e) -> let a = eval env e in
-                (match a with
-                | Env.Int(i) -> print_int i; print_string "\n"; a
-                | _ -> raise Not_An_Int)
-  | TryWith(e1, x, e2) ->  exceptionStack := (Env.copy env, x, e2)::!(exceptionStack); (* on copie l'environment actuel, on garde la variable qui sera affectée et le code à exécuter si jamais on catch une exception *)
-                          eval env e1
-
+  | PrInt(e) ->
+    handle env e
+      (fun a ->
+         match a with
+         | Env.Int(i) -> print_int i; print_string "\n"; a
+         | _ -> raise Not_An_Int
+      )
+  | TryWith(e1, x, e2) ->
+        (* on copie l'environment actuel, on garde la variable qui sera affectée
+           et le code à exécuter si jamais on catch une exception *)
+    exceptionStack := (Env.copy env, x, e2)::!(exceptionStack);
+    eval env e1
   | Function_arg(x, e) as f -> Env.Closure(f, Env.env_free_var env (free_variable_list f))
   | IfThenElse(b, left, right) ->
-    let is_left = eval env b in
-    if is_left <> Env.Int(0) then eval env left else eval env right
+    handle env b (fun is_left ->
+        if is_left <> Env.Int(0)
+        then eval env left else eval env right
+      )
   | Const_bool(false) -> Env.Int(0)
   | Const_bool(true) -> Env.Int(1)
   | Not(b) -> eval env b
-  | And(a, b) -> handle env a (fun eval_a -> (eval env a) &&$ (eval env b))
-  | Or(a, b) -> handle env a (fun eval_a -> (eval env a) ||$ (eval env b))
-  | Eq(a, b) -> handle env a (fun eval_a -> cond ((eval env a) = (eval env b)))
-  | Neq(a, b) -> handle env a (fun eval_a -> cond ((eval env a) <> (eval env b)))
-  | Lt(a, b) -> handle env a (fun eval_a -> (eval env a) <$ (eval env b))
-  | Gt(a, b) -> handle env a (fun eval_a -> (eval env a) >$ (eval env b))
-  | Lte(a, b) -> handle env a (fun eval_a -> (eval env a) <=$ (eval env b))
-  | Gte(a, b) -> handle env a (fun eval_a -> (eval env a) >=$ (eval env b))
+  | And(a, b) -> handle env a (fun eval_a -> eval_a &&$ (eval env b))
+  | Or(a, b) -> handle env a (fun eval_a -> eval_a ||$ (eval env b))
+  | Eq(a, b) -> handle env a (fun eval_a -> cond (eval_a = (eval env b)))
+  | Neq(a, b) -> handle env a (fun eval_a -> cond (eval_a <> (eval env b)))
+  | Lt(a, b) -> handle env a (fun eval_a -> eval_a <$ (eval env b))
+  | Gt(a, b) -> handle env a (fun eval_a -> eval_a >$ (eval env b))
+  | Lte(a, b) -> handle env a (fun eval_a -> eval_a <=$ (eval env b))
+  | Gte(a, b) -> handle env a (fun eval_a -> eval_a >=$ (eval env b))
   | Const_int(i) -> Env.Int(i)
-  | Plus(a, b) -> handle env a (fun eval_a -> (eval env a) +$ (eval env b))
-  | Minus(a, b) -> handle env a (fun eval_a -> (eval env a) -$ (eval env b))
-  | Times(a, b) -> handle env a (fun eval_a -> (eval env a) *$ (eval env b))
-  | Divide(a, b) -> handle env a (fun eval_a -> (eval env a) /$ (eval env b))
-  | Reference(r) -> (match eval env r with Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
-  | Deference(r) -> (match eval env r with Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
+  | Plus(a, b) -> handle env a (fun eval_a -> eval_a +$ (eval env b))
+  | Minus(a, b) -> handle env a (fun eval_a -> eval_a -$ (eval env b))
+  | Times(a, b) -> handle env a (fun eval_a -> eval_a *$ (eval env b))
+  | Divide(a, b) -> handle env a (fun eval_a -> eval_a /$ (eval env b))
+  | Reference(r) -> handle env r (function Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
+  | Deference(r) -> handle env r (function Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
   | Imp(a, b) -> handle env a (fun eval_a -> eval env b)
   | Set(v, b) ->
-    let rvalue = match eval env b with Env.Int(i) -> i | _ -> raise Not_An_Int in
-    let lvalue = match Env.search env v with Env.RefInt(r) -> r | _ -> raise Not_A_Reference in
-    lvalue := rvalue;
-    Env.Int(rvalue)
+    handle env b (
+      fun eval_b ->
+        let rvalue = match eval_b with Env.Int(i) -> i | _ -> raise Not_An_Int in
+        let lvalue = match Env.search env v with Env.RefInt(r) -> r | _ -> raise Not_A_Reference in
+        lvalue := rvalue;
+        Env.Int(rvalue)
+    )
   | Apply(f, arg) ->
-    match eval env f with
-    | Env.Closure(Function_arg(x, expr), e) ->
-      Env.push e x (eval env arg);
-      let return = eval e expr in
-      Env.pop e x;
-      return
-    | _-> raise Not_A_Closure;;
+    handle env f (
+      function
+      | Env.Closure(Function_arg(x, expr), e) ->
+        handle env arg (
+          fun eval_arg ->
+            Env.push e x eval_arg;
+            let return = eval e expr in
+            Env.pop e x;
+            return
+        )
+      | _-> raise Not_A_Closure
+    );;
