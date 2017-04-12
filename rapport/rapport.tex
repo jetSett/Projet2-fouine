@@ -133,7 +133,7 @@ A chaque appel à try on push, à chaque appel à raise on pop et on retourne da
 
 Un nouveau problème est apparu tardivement : lors d'exécutions de code dans un certain ordre, les appels récursifs de eval sont tels que même si une exception est levée, le code continue de s'exécuter.
 
-Nous avons résolu le problème en regardant la taille de la pile de trywith avant et après les appels récursifs
+Nous avons résolu le problème en regardant la taille de la pile de trywith avant et après les appels récursifs. Cela n'est pas très élégant, mais cela marche, ce qui est bien.
 
 \chapter*{La machine SECD}
 
