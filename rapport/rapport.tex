@@ -59,7 +59,7 @@ Il suffit alors de taper le programme sur l'entrée, possiblement sur plusieurs 
   
 L'autre mode prend simplement le nom d'une fichier en entrée et l'utilise comme entrée.  
   
-La sortie effective du programme interprétée (avec prInt) est préfixée par "stdout of ./fouine :" pour ne pas confondre avce la sortie de ./fouine lui même.  
+La sortie effective du programme interprété (avec prInt) est préfixée par "stdout of ./fouine :" pour ne pas confondre avce la sortie de ./fouine lui même.  
   
 La sortie de ./fouine est la valeur de l'expression parsée, faiblement typée (référence, entier ou clôture).
 
@@ -88,7 +88,7 @@ Les clauses \textbf{let} enrichissent l'environnement en empilant une nouvelle v
   
 La clôture est la donnée de 1) l'expression de la fonction à évaluer et de 2) la partie de l'environnement qui contient les variables libres de l'expression. Cela évite de recopier l'intégralité de l'environnement, au risque de capturer des variables inutiles, et donc améliore les performance.  
   
-Lors d'une application de fonction, de la forme \textit{(fun x -> e) y} on enrichit l'environnement de la clôture avec le résultat de l'évaluation de \textit{y}, mappé à l'identificateur \textit{x}, puis on se sert de l'environnement ainsi formé pour évaluer \textit{e}.  
+Lors d'une application de fonction, de la forme \textit{(fun x $\to$ e) y} on enrichi l'environnement de la clôture avec le résultat de l'évaluation de \textit{y}, mappé à l'identificateur \textit{x}, puis on se sert de l'environnement ainsi formé pour évaluer \textit{e}.  
   
 \section{La récursivité}  
 Codé par Louis.
@@ -116,8 +116,24 @@ Notons que cela a également ajouté le ";" pour lequel il convient d'être atte
 \section{L'environnement et les foncteurs associés}  
 Codé par Joël.
 
+C'est un foncteur qui encapsule le fonctionement des dictionnaires. L'idée est que les types sont inter-dépendants : on doit pouvoir mettre un environement dans une cloture et une cloture dans un environement. L'idée de faire un foncteur est donc naturellement apparue.
+
+On encapsule le fonctionnement d'un "dictionnaire par pile" pour les push et les pop de variables.
+
+Il se trouve que les tables de hachages normales de caml fonctionnent ainsi, ce qui m'a beaucoup simplifié la tache.
+
 \section{Les exceptions et la pile d'environnements}  
 Codé par Joël.
+
+La première idée a été d'utiliser le mécanisme classique d'exception de Caml, on nous a cependant dit que cela trivialisait un peu trop l'exercice. J'ai donc codé de manière "traditionnelle" les exceptions.
+
+L'idée est de stocker une pile "env*x*expr", on stocke l'environement, la variable qu'on va affecter et l'expression qui va être exécutée dans le with.
+
+A chaque appel à try on push, à chaque appel à raise on pop et on retourne dans l'état precedent.
+
+Un nouveau problème est apparu tardivement : lors d'exécutions de code dans un certain ordre, les appels récursifs de eval sont tels que même si une exception est levée, le code continue de s'exécuter.
+
+Nous avons résolu le problème en regardant la taille de la pile de trywith avant et après les appels récursifs
 
 \chapter*{La machine SECD}
 
@@ -133,5 +149,18 @@ Aucune difficulté technique ici. Compiler vers une machine à pile consiste sur
 Des clôtures sont également utilisées, de manière identique à celles du cas de l'interprétation.  
 
 \section{L'exécution du code compilé}
-Codé par Joël.  
+Codé par Joël. 
+ 
+Cela a été une implémentation du code des slides du cours, pour tout ce qui est du non impératif.
+
+Les valeurs possibles sur la pile et dans l'environement sont codées dans le foncteur d'environement SECD, qui est essentiellement repris du foncteur pour l'interpretation. 
+
+Pour l'impératif, le ; n'a posé problème que lors des retours de fonctions. En effet, il faut trouver la valeur de retour et poper tout le reste, j'ai donc du créer une fonction "pop\_stack\_ret" pour faire ce travail.
+
+Les ifthenelse sont géré en faisant des branches dans le code interne du programme : on stocke dans la structure de l'instruction IFTHENELSE les codes à executer. La valeur du booléen est attendue sur la pile.
+
+les raises et try with de la même manière que precedemment (en pushant/poppant la stack aussi)
+
+Le let rec est une adaptation du let rec de l'interpreteur, mais il faut savoir que la liste des variables libre n'étant pas si facile que ça à trouver, j'ai pris le parti de faire une liste qui contient des variables libres qui ne sont pas forcément dans l'environement actuel (typiquement, cela arrive quand on déclare une fonction récursive dans la déclaration d'une fonction). Cette liste est envoyée aux fonctions du foncteur d'environement qui décide de ne rien copier si il ne connait pas la variable (pour la création de la cloture).
+
 \end{document}
