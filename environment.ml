@@ -22,6 +22,7 @@ functor (Dict : PushDictionary) ->
       | Int of int
       | Closure of expr * value Dict.dict
       | RefInt of int ref
+      | Raise_except of value
     ;;
 
     type env = value Dict.dict;;
@@ -38,7 +39,8 @@ functor (Dict : PushDictionary) ->
 
     let copy : env -> env = Dict.copy;;
 
-    let printValue = function
+    let rec printValue = function
+      | Raise_except(a) -> print_string "- : exception :\n"; printValue a;
       | Int(i) -> print_string "- : int = "; print_int i
       | Closure(f, e') -> print_string "- : function = "; PrintExpr.printExpr stdout f
       | RefInt(r) -> print_string "- : int ref = "; print_int (!r)

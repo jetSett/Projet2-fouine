@@ -22,20 +22,15 @@ let ( >$ ) a b = match a, b with | Env.Int(a), Env.Int(b) -> cond (a > b) | _ ->
 let (<=$ ) a b = match a, b with | Env.Int(a), Env.Int(b) -> cond (a <= b) | _ -> raise Not_An_Int;;
 let (>=$ ) a b = match a, b with | Env.Int(a), Env.Int(b) -> cond (a >= b) | _ -> raise Not_An_Int;;
 
-let exceptionStack = ref [] (* stack of environment*variable*expr for exception handling  *)
 
-let rec handle env a f = (*to interrupt computation when an exception rises*)
-  let before = List.length !exceptionStack in
+let rec handle env a f = (* to interrupt computation when an exception rises *)
   let eval_a = eval env a in
-  let after = List.length !exceptionStack in
-  if before = after then f eval_a else eval_a
+  match eval_a with
+    | Env.Raise_except(e) -> eval_a
+    | _ -> f eval_a
 and eval env = function
   | Unit -> Env.Int(0)
-  | Raise(e) -> let result = eval env e in
-      (match !exceptionStack with
-        | [] -> raise Unhandled_exception
-        | (nEnv, x, expr)::q -> exceptionStack := q; Env.push nEnv x result; eval nEnv expr
-      )
+  | Raise(e) -> handle env e (fun result -> Env.Raise_except(result))
   | Variable(x) ->
     let v = Env.search env x in v
   | Let_in(x, expr_x, b) ->
@@ -63,10 +58,11 @@ and eval env = function
          | _ -> raise Not_An_Int
       )
   | TryWith(e1, x, e2) ->
-        (* on copie l'environment actuel, on garde la variable qui sera affectée
-           et le code à exécuter si jamais on catch une exception *)
-    exceptionStack := (Env.copy env, x, e2)::!(exceptionStack);
-    eval env e1
+      let ret = eval env e1 in
+      (match ret with (* if we catch an exception *)
+        | Env.Raise_except(a) -> Env.push env x a; eval env e2
+        | _ -> ret)
+
   | Function_arg(x, e) as f -> Env.Closure(f, Env.env_free_var env (free_variable_list f))
   | IfThenElse(b, left, right) ->
     handle env b (fun is_left ->
@@ -89,8 +85,8 @@ and eval env = function
   | Minus(a, b) -> handle env a (fun eval_a -> eval_a -$ (eval env b))
   | Times(a, b) -> handle env a (fun eval_a -> eval_a *$ (eval env b))
   | Divide(a, b) -> handle env a (fun eval_a -> eval_a /$ (eval env b))
-  | Reference(r) -> handle env r (function Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
-  | Deference(r) -> handle env r (function Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
+  | Reference(r) -> handle env r (fun Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
+  | Deference(r) -> handle env r (fun Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
   | Imp(a, b) -> handle env a (fun eval_a -> eval env b)
   | Set(v, b) ->
     handle env b (
