@@ -97,17 +97,17 @@ and eval env = function
         lvalue := rvalue;
         Env.Int(rvalue)
     )
-  | AMake(e) -> handle env e (function Env.Int(i) -> Env.Tab(Array.make i 0) | _ -> raise Not_An_Int)
-  | TabAccess(varTab, eIndex) -> let tab = Env.search env varTab in
+  | AMake(e) -> handle env e (function Env.Int(i) -> Env.Array(Array.make i 0) | _ -> raise Not_An_Int)
+  | ArrayAccess(varTab, eIndex) -> let tab = Env.search env varTab in
                                   (match tab with
-                                  | Env.Tab(t) -> handle env eIndex (
+                                  | Env.Array(t) -> handle env eIndex (
                                         function Env.Int(i) -> Env.Int(t.(i))
                                                 | _ -> raise Not_An_Int
                                     )
                                   | _ -> raise Not_An_Array)
 
-  | TabWrite(varTab, eIndex, eValue) -> let tab = (match Env.search env varTab with
-                                                    | Env.Tab(t) -> t
+  | ArrayWrite(varTab, eIndex, eValue) -> let tab = (match Env.search env varTab with
+                                                    | Env.Array(t) -> t
                                                     | _ -> raise Not_An_Array) in
                                   handle env eIndex
                                   (function

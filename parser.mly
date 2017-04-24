@@ -101,8 +101,8 @@ sexpr:
   | variable SET expr                           {     Set($1, $3)                         }
 
   | AMAKE expr                                  {     AMake($2)                           }
-  | variable POINT LPARENT expr RPARENT LARROW expr { TabWrite($1, $4, $7)                }
-  | variable POINT LPARENT expr RPARENT             { TabAccess($1, $4)                   }
+  | variable POINT LPARENT expr RPARENT LARROW expr { ArrayWrite($1, $4, $7)                }
+  | variable POINT LPARENT expr RPARENT             { ArrayAccess($1, $4)                   }
 
   | expr PLUS expr                              {     Plus($1, $3)                        }
   | expr MINUS expr                             {     Minus($1, $3)                       }
