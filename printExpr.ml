@@ -45,6 +45,9 @@ let printExpr channel e =
     | Gt(a, b) -> prE a; ps " > "; prE b
     | Lte(a, b) -> prE a; ps " <= "; prE b
     | Gte(a, b) -> prE a; ps " >= "; prE b
+    | AMake(e) -> ps "aMake "; prE e
+    | TabAccess(varTab, e2) -> printVar varTab; ps ".("; prE e2; ps ")"
+    | TabWrite(varTab, e1, e2) -> printVar varTab; ps ".("; prE e1; ps ") <- "; prE e2
     );
     if not isAtomic
         then ps ")"

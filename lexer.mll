@@ -37,7 +37,9 @@ rule token = parse
     | "then"                {   THEN                    }
     | "else"                {   ELSE                    }
     | "fun"                 {   FUN                     }
-    | "->"                  {   ARROW                   }
+    | "->"                  {   RARROW                  }
+    | "<-"                  {   LARROW                  }
+    | '.'                   {   POINT                   }
     | "ref"                 {   REF                     }
     | "!"                   {   DEREF                   }
     | ":="                  {   SET                     }
@@ -47,6 +49,7 @@ rule token = parse
     | "E"                   {   EXCEPT                  }
     | "raise"               {   RAISE                   }
     | "prInt"               {   PRINT                   }
+    | "aMake"               {   AMAKE                   }
 
     (* var *)
     | ['a'-'z']['a'-'z' 'A'-'Z' '_' '1'-'9']* as s {   VAR( s )  }

@@ -22,6 +22,7 @@ functor (Dict : PushDictionary) ->
       | Int of int
       | Closure of expr * value Dict.dict
       | RefInt of int ref
+      | Tab of int array
       | Raise_except of value
     ;;
 
@@ -40,6 +41,10 @@ functor (Dict : PushDictionary) ->
     let copy : env -> env = Dict.copy;;
 
     let rec printValue = function
+      | Tab(t) -> print_string "- Tab :\n";
+                  for i = 0 to (Array.length t) -1 do
+                    print_int t.(i); print_string "\n";
+                  done;
       | Raise_except(a) -> print_string "- : exception :\n"; printValue a;
       | Int(i) -> print_string "- : int = "; print_int i
       | Closure(f, e') -> print_string "- : function = "; PrintExpr.printExpr stdout f

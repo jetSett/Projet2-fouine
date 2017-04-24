@@ -5,6 +5,7 @@ open Dictpush_hashTbl;;
 exception Not_A_Closure;;
 exception Not_An_Int;;
 exception Not_A_Reference;;
+exception Not_An_Array;;
 exception Unhandled_exception;;
 
 module Env = Environment(Dictpush_hashTbl)
@@ -96,6 +97,26 @@ and eval env = function
         lvalue := rvalue;
         Env.Int(rvalue)
     )
+  | AMake(e) -> handle env e (function Env.Int(i) -> Env.Tab(Array.make i 0) | _ -> raise Not_An_Int)
+  | TabAccess(varTab, eIndex) -> let tab = Env.search env varTab in
+                                  (match tab with
+                                  | Env.Tab(t) -> handle env eIndex (
+                                        function Env.Int(i) -> Env.Int(t.(i))
+                                                | _ -> raise Not_An_Int
+                                    )
+                                  | _ -> raise Not_An_Array)
+
+  | TabWrite(varTab, eIndex, eValue) -> let tab = (match Env.search env varTab with
+                                                    | Env.Tab(t) -> t
+                                                    | _ -> raise Not_An_Array) in
+                                  handle env eIndex
+                                  (function
+                                    | Env.Int(i) -> handle env eValue (
+                                      function Env.Int(v) -> (tab.(i) <- v; Env.Int(0))
+                                                | _ -> raise Not_An_Int
+                                      )
+                                    | _ -> raise Not_An_Int
+                                  )
   | Apply(f, arg) ->
     handle env f (
       function

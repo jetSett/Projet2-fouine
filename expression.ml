@@ -12,6 +12,9 @@ type expr =
   | Raise of expr
   | IfThenElse of expr * expr * expr
   | TryWith of expr * variable * expr
+  | AMake of expr
+  | TabAccess of variable * expr
+  | TabWrite of variable * expr * expr (* var.( e1 ) <- e2 *)
   | PrInt of expr
   | And of expr * expr
   | Or of expr * expr
@@ -84,5 +87,10 @@ let free_variable_list e =
     | Gt(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
     | Lte(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
     | Gte(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
+    | AMake(e) -> aux linked_v e
+    | TabAccess(v, e) -> if List.mem v linked_v then (aux linked_v e) else
+                                v::(aux linked_v e)
+    | TabWrite(v, e1, e2) -> if List.mem v linked_v then merge (aux linked_v e1) (aux linked_v e2) else
+                                v::(merge (aux linked_v e1) (aux linked_v e2))
   in
   aux [] e;;
