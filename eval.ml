@@ -85,8 +85,8 @@ and eval env = function
   | Minus(a, b) -> handle env a (fun eval_a -> eval_a -$ (eval env b))
   | Times(a, b) -> handle env a (fun eval_a -> eval_a *$ (eval env b))
   | Divide(a, b) -> handle env a (fun eval_a -> eval_a /$ (eval env b))
-  | Reference(r) -> handle env r (fun Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
-  | Deference(r) -> handle env r (fun Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
+  | Reference(r) -> handle env r (function Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
+  | Deference(r) -> handle env r (function Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
   | Imp(a, b) -> handle env a (fun eval_a -> eval env b)
   | Set(v, b) ->
     handle env b (
