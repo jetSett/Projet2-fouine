@@ -14,6 +14,7 @@ exception Not_A_Closure of stack_value;;
 exception Not_An_Int of stack_value;;
 exception Not_A_Boolean of stack_value;;
 exception Not_An_Env of stack_value;;
+exception Not_An_Array of stack_value;;
 exception Ret_Not_Possible;;
 exception Not_A_Ref of stack_value;;
 exception Raise_Not_Catched of int;;
@@ -34,6 +35,11 @@ let pop_stack_int stack = let e = pop_stack stack in
   match e with
     | Int(i) -> i
     | _ -> raise (Not_An_Int e);;
+
+let pop_stack_array stack = let e = pop_stack stack in
+  match e with
+    | Array(t) -> t
+    | _ -> raise (Not_An_Array e)
 
 let pop_stack_bool stack = let e = pop_stack stack in
   match e with
@@ -139,3 +145,15 @@ match prog with
                       in
                 let value = pop_stack_int stack in
                 a := value; interpret_SECD q
+  | ARRAY_MAKE::q -> let n = pop_stack_int stack in
+                     push_stack stack (Array(Array.make n 0));
+                     interpret_SECD q
+  | ARRAY_SET(v)::q -> let i = pop_stack_int stack in
+                       let value = pop_stack_int stack in
+                       let t = (match SECD_env.search !env v with Array(x) -> x | _ as e -> raise (Not_An_Array(e))) in
+                       t.(i) <- value;
+                       interpret_SECD q;
+  | ARRAY_ACCESS(v)::q -> let i = pop_stack_int stack in
+                          let t = (match SECD_env.search !env v with Array(x) -> x | _ as e -> raise (Not_An_Array(e))) in
+                          push_stack stack (Int(t.(i)));
+                          interpret_SECD q;

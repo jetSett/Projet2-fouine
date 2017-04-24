@@ -18,6 +18,10 @@ and instruction =
   | GT
   | LTE
   | GTE
+  (* ARRAYS *)
+  | ARRAY_ACCESS of variable
+  | ARRAY_SET of variable
+  | ARRAY_MAKE
   (* OTHER *)
   | REF
   | DEREF
@@ -68,6 +72,8 @@ let free_variable_list prog =
       | CLOS(v, p)::q -> merge (aux p (v::linked)) (aux q linked)
 
       | TRYWITH(v, p)::q -> merge (aux p linked) (aux q (v::linked))
+      | ARRAY_ACCESS(v)::q -> if List.mem v linked then aux q linked else v::(aux q linked)
+      | ARRAY_SET(v)::q -> if List.mem v linked then aux q linked else v::(aux q linked)
       | _::q -> aux q linked in
     aux prog []
 
@@ -104,4 +110,7 @@ let rec compile = function
   | Reference(e) -> (compile e) @ [REF]
   | Deference(r) -> (compile r) @ [DEREF]
   | Set(v, b) -> (compile b) @ [SET(v)](* la pile ressemble à ça après : val, ref, s *)
+  | ArrayWrite(v, eIndex, eValue) -> (compile eValue) @ (compile eIndex) @ [ARRAY_SET(v)]
+  | ArrayAccess(v, eIndex) -> (compile eIndex) @ [ARRAY_ACCESS(v)]
+  | AMake(e) -> (compile e) @ [ARRAY_MAKE]
 ;;

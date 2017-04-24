@@ -11,6 +11,7 @@ functor (Dict : PushDictionary) ->
       | Clot of variable * secd_program * stack_value Dict.dict
       | Program of secd_program
       | RefInt of int ref
+      | Array of int array
 
 
     type value = stack_value;;

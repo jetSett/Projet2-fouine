@@ -103,5 +103,5 @@ let printSECD channel e =
     | SET(Var(x)) -> ps "SET("; ps x; ps ")"
     | ARRAY_SET(v) -> ps "ARRAY_SET("; printVar v; ps ")"
     | ARRAY_MAKE -> ps "ARRAY_MAKE"
-    | ARRAY_ACCESS(v) -> ps "ARRAY_ACCESS"; printVar v; ps ")"
+    | ARRAY_ACCESS(v) -> ps "ARRAY_ACCESS("; printVar v; ps ")"
   in prS e; ps "\n";;
