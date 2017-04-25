@@ -113,4 +113,5 @@ let rec compile = function
   | ArrayWrite(v, eIndex, eValue) -> (compile eValue) @ (compile eIndex) @ [ARRAY_SET(v)]
   | ArrayAccess(v, eIndex) -> (compile eIndex) @ [ARRAY_ACCESS(v)]
   | AMake(e) -> (compile e) @ [ARRAY_MAKE]
+  | _ as e -> raise (Not_Supported_Yet(e))
 ;;

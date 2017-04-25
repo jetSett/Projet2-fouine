@@ -7,6 +7,7 @@ type expr =
   | Variable of variable
   | Let_in of variable * expr * expr
   | Let_rec of variable * expr * expr
+  | Let_match of variable * variable * expr * expr
   | Function_arg of variable * expr
   | Not of expr
   | Raise of expr
@@ -33,6 +34,7 @@ type expr =
   | Gt of expr * expr
   | Lte of expr * expr
   | Gte of expr * expr
+  | Comma of expr * expr
 ;;
 
 let map_fun variables expr =
@@ -61,6 +63,10 @@ let free_variable_list e =
           then aux linked_v e2
           else aux (x::linked_v) e2
       in merge l1 (aux linked_v e1)
+    | Let_match(x, y, e1, e2) ->
+      let l_x = if List.mem x linked_v then linked_v else x::linked_v in
+      let l_xy = if List.mem y l_x then l_x else y::l_x in
+      merge l_xy (aux linked_v e1)
     | Function_arg(x, e1) ->
       if List.mem x linked_v
         then aux linked_v e1
@@ -82,6 +88,7 @@ let free_variable_list e =
     | Reference(e1) -> aux linked_v e1
     | Deference(e1) -> aux linked_v e1
     | Imp(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
+    | Comma(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
     | Set(v, e2) -> merge (aux linked_v (Variable(v))) (aux linked_v e2)
     | Lt(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)
     | Gt(e1, e2) -> merge (aux linked_v e1) (aux linked_v e2)

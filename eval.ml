@@ -6,6 +6,7 @@ exception Not_A_Closure;;
 exception Not_An_Int;;
 exception Not_A_Reference;;
 exception Not_An_Array;;
+exception Not_A_Couple;;
 exception Unhandled_exception;;
 
 module Env = Environment(Dictpush_hashTbl)
@@ -22,7 +23,6 @@ let ( <$ ) a b = match a, b with | Env.Int(a), Env.Int(b) -> cond (a < b) | _ ->
 let ( >$ ) a b = match a, b with | Env.Int(a), Env.Int(b) -> cond (a > b) | _ -> raise Not_An_Int;;
 let (<=$ ) a b = match a, b with | Env.Int(a), Env.Int(b) -> cond (a <= b) | _ -> raise Not_An_Int;;
 let (>=$ ) a b = match a, b with | Env.Int(a), Env.Int(b) -> cond (a >= b) | _ -> raise Not_An_Int;;
-
 
 let rec handle env a f = (* to interrupt computation when an exception rises *)
   let eval_a = eval env a in
@@ -41,6 +41,18 @@ and eval env = function
         Env.pop env x;
         return
       )
+  | Let_match(x, y, expr_xy, b) ->
+    handle env expr_xy (
+      function
+      | Env.Couple(val_x, val_y) ->
+        Env.push env x val_x;
+        Env.push env y val_y;
+        let return = eval env b in
+        Env.pop env x;
+        Env.pop env y;
+        return
+      | _ -> raise Not_A_Couple
+    )
   | Let_rec(f, expr_f, b) ->
     let naive = free_variable_list expr_f in
     let vars = List.filter (fun v -> v <> f) naive in (*f is not a free variable*)
@@ -69,7 +81,7 @@ and eval env = function
     handle env b (fun is_left ->
         if is_left <> Env.Int(0)
         then eval env left else eval env right
-      )
+    )
   | Const_bool(false) -> Env.Int(0)
   | Const_bool(true) -> Env.Int(1)
   | Not(b) -> eval env b
@@ -89,6 +101,7 @@ and eval env = function
   | Reference(r) -> handle env r (function Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
   | Deference(r) -> handle env r (function Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
   | Imp(a, b) -> handle env a (fun eval_a -> eval env b)
+  | Comma(a, b) -> handle env a (fun eval_a -> handle env b (fun eval_b -> Env.Couple(eval_a, eval_b)))
   | Set(v, b) ->
     handle env b (
       fun eval_b ->
@@ -98,25 +111,31 @@ and eval env = function
         Env.Int(rvalue)
     )
   | AMake(e) -> handle env e (function Env.Int(i) -> Env.Array(Array.make i 0) | _ -> raise Not_An_Int)
-  | ArrayAccess(varTab, eIndex) -> let tab = Env.search env varTab in
-                                  (match tab with
-                                  | Env.Array(t) -> handle env eIndex (
-                                        function Env.Int(i) -> Env.Int(t.(i))
-                                                | _ -> raise Not_An_Int
-                                    )
-                                  | _ -> raise Not_An_Array)
+  | ArrayAccess(varTab, eIndex) ->
+    let tab = Env.search env varTab in (
+    match tab with
+     | Env.Array(t) ->
+       handle env eIndex (
+         function
+         | Env.Int(i) -> Env.Int(t.(i))
+         | _ -> raise Not_An_Int
+       )
+     | _ -> raise Not_An_Array
+    )
+  | ArrayWrite(varTab, eIndex, eValue) ->
+    let tab = (
+      match Env.search env varTab with
+      | Env.Array(t) -> t
+      | _ -> raise Not_An_Array) in
 
-  | ArrayWrite(varTab, eIndex, eValue) -> let tab = (match Env.search env varTab with
-                                                    | Env.Array(t) -> t
-                                                    | _ -> raise Not_An_Array) in
-                                  handle env eIndex
-                                  (function
-                                    | Env.Int(i) -> handle env eValue (
-                                      function Env.Int(v) -> (tab.(i) <- v; Env.Int(0))
-                                                | _ -> raise Not_An_Int
-                                      )
-                                    | _ -> raise Not_An_Int
-                                  )
+    handle env eIndex (function
+        | Env.Int(i) -> handle env eValue (
+            function
+            | Env.Int(v) -> (tab.(i) <- v; Env.Int(0))
+            | _ -> raise Not_An_Int
+          )
+        | _ -> raise Not_An_Int
+      )
   | Apply(f, arg) ->
     handle env f (
       function
