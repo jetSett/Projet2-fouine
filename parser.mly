@@ -102,8 +102,8 @@ sexpr:
 
   | expr COMMA expr                             {     Comma($1, $3)                       }
 
-  | TRY expr WITH EXCEPT variable RARROW expr   {     TryWith($2, $5, $7)                 }
-  | RAISE expr                                  {     Raise($2)                           }
+  | TRY expr WITH EXCEPT variable RARROW expr    {     TryWith($2, $5, $7)                 }
+  | RAISE LPARENT EXCEPT expr RPARENT            {     Raise($4)                           }
 
   | REF expr                                    {     Reference($2)                       }
   | DEREF expr                                  {     Deference($2)                       }

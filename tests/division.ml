@@ -1,5 +1,5 @@
 let modulo x y =
-  if y = 0 || x < 0 || y < 0 then raise -424242
+  if y = 0 || x < 0 || y < 0 then raise (E -424242)
   else
     let rec test = fun x ->
       if x < y then x
