@@ -110,14 +110,14 @@ and eval env = function
         lvalue := rvalue;
         rvalue
     )
-  | AMake(e) -> handle env e (function Env.Int(i) -> Env.Array(Array.make i 0) | _ -> raise Not_An_Int)
+  | AMake(e) -> handle env e (function Env.Int(i) -> Env.Array(Array.make i (Env.Int(0))) | _ -> raise Not_An_Int)
   | ArrayAccess(varTab, eIndex) ->
     let tab = Env.search env varTab in (
     match tab with
      | Env.Array(t) ->
        handle env eIndex (
          function
-         | Env.Int(i) -> Env.Int(t.(i))
+         | Env.Int(i) -> t.(i)
          | _ -> raise Not_An_Int
        )
      | _ -> raise Not_An_Array
@@ -130,9 +130,7 @@ and eval env = function
 
     handle env eIndex (function
         | Env.Int(i) -> handle env eValue (
-            function
-            | Env.Int(v) -> (tab.(i) <- v; Env.Int(0))
-            | _ -> raise Not_An_Int
+            function v -> (tab.(i) <- v; v)
           )
         | _ -> raise Not_An_Int
       )

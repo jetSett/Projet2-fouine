@@ -1,6 +1,7 @@
 open Expression;;
 open SECD;;
 open Printf;;
+open Lexer;;
 
 let isAtom = function
   | Variable(_) -> true
