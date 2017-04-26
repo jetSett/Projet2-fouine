@@ -94,7 +94,7 @@ sexpr:
   | FUN variable lvariable RARROW expr           {     Function_arg($2, map_fun $3 $5)     }
 
   | TRY expr WITH EXCEPT variable RARROW expr    {     TryWith($2, $5, $7)                 }
-  | RAISE expr                                  {     Raise($2)                           }
+  | RAISE LPARENT EXCEPT expr RPARENT            {     Raise($4)                           }
 
   | REF expr                                    {     Reference($2)                       }
   | DEREF expr                                  {     Deference($2)                       }
