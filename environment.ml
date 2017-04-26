@@ -24,6 +24,7 @@ functor (Dict : PushDictionary) ->
       | RefInt of int ref
       | Array of int array
       | Raise_except of value
+      | Couple of value * value
     ;;
 
     type env = value Dict.dict;;
@@ -49,6 +50,7 @@ functor (Dict : PushDictionary) ->
       | Int(i) -> print_string "- : int = "; print_int i
       | Closure(f, e') -> print_string "- : function = "; PrintExpr.printExpr stdout f
       | RefInt(r) -> print_string "- : int ref = "; print_int (!r)
+      | Couple(a, b)-> print_string "- : value * value = ("; printValue a; print_string ", "; printValue b; print_string ")"
     ;;
 
     let env_free_var : env -> variable list -> env = fun env l ->

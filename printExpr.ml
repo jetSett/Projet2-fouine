@@ -22,6 +22,7 @@ let printExpr channel e =
     | Variable(x) -> printVar x
     | Let_in(x, e1, e2) -> ps "let "; printVar x; ps " = "; prE e1; ps " in "; prE e2
     | Let_rec(x, e1, e2) -> ps "let rec "; printVar x; ps " = "; prE e1; ps " in "; prE e2
+    | Let_match(x, y, e1, e2) -> ps "let ("; printVar x; ps ", "; printVar y; ps ") = "; prE e1; ps " in "; prE e2
     | Function_arg(x, e) -> ps "fun "; printVar x; ps " -> "; prE e
     | IfThenElse(c, a, b) -> ps "if "; prE c; ps " then "; prE a; ps " else "; prE b
     | TryWith(e1, Var(x), e2) -> ps "try "; prE e1; ps "with E "; ps x; ps " -> "; prE e2;
@@ -48,6 +49,7 @@ let printExpr channel e =
     | AMake(e) -> ps "aMake "; prE e
     | ArrayAccess(varTab, e2) -> printVar varTab; ps ".("; prE e2; ps ")"
     | ArrayWrite(varTab, e1, e2) -> printVar varTab; ps ".("; prE e1; ps ") <- "; prE e2
+    | Comma(a, b) -> prE a; ps ", "; prE b
     );
     if not isAtomic
         then ps ")"

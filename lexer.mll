@@ -44,6 +44,7 @@ rule token = parse
     | "!"                   {   DEREF                   }
     | ":="                  {   SET                     }
     | ";"                   {   IMP                     }
+    | ","                   {   COMMA                   }
     | "try"                 {   TRY                     }
     | "with"                {   WITH                    }
     | "E"                   {   EXCEPT                  }
