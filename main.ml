@@ -4,6 +4,8 @@ open Eval;;
 open Environment;;
 open SECD_interpret;;
 open SECD;;
+open Continuation;;
+open Expression;;
 
 let debug_enable = ref false;;
 let machine_enable = ref false;;
@@ -42,7 +44,6 @@ let run () =
 
   let result = parse () in
   if not (!command) then close_in (!expr_input);
-
   if !debug_enable then
     begin
       printExpr stdout result;
@@ -50,7 +51,8 @@ let run () =
     end;
 
   print_string "stdout of ./fouine :\n";
-  let value = eval (Env.create ()) result in
+  let result_trans = Apply(transformation_cont result, Function_arg(vX, Variable(vX))) in
+  let value = eval (Env.create ()) result_trans in
   Env.printValue value;
   print_newline ();
 
