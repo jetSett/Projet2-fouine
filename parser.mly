@@ -135,6 +135,7 @@ expr:
 ;
 
 bexpr:
+  | LPARENT bexpr RPARENT                     {     $2                                  }
   | expr EQ expr                              {     Eq($1, $3)                          }
   | expr NEQ expr                             {     Neq($1, $3)                         }
   | expr LT expr                              {     Lt($1, $3)                          }

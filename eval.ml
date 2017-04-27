@@ -1,6 +1,7 @@
 open Expression;;
 open Environment;;
 open Dictpush_hashTbl;;
+open PrintExpr;;
 
 exception Not_A_Closure;;
 exception Not_An_Int;;
@@ -146,4 +147,5 @@ and eval env = function
             return
         )
       | _-> raise Not_A_Closure
-    );;
+    )
+  ;;

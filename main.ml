@@ -63,11 +63,15 @@ let run () =
   if !transform_imp_enable then
     begin
       let transformed = (transform_imp (!result)) in
+      if !debug_enable then (
+        print_string "Transformed program : without References\n";
+        print_string transformed;
+        print_newline ();
+        print_newline ()
+      );
       let lexbuf = Lexing.from_string transformed in
       let parse () = Parser.main Lexer.token lexbuf in
-      result := (parse ());
-      if !debug_enable then print_string "Transformed program : without References\n";
-      printProg (!result)
+      result := (parse ())
     end;
 
   print_string "stdout of ./fouine :\n";
