@@ -1,6 +1,7 @@
 open Expression;;
 open Environment;;
 open Dictpush_hashTbl;;
+open PrintExpr;;
 
 exception Not_A_Closure;;
 exception Not_An_Int;;
@@ -98,26 +99,26 @@ and eval env = function
   | Minus(a, b) -> handle env a (fun eval_a -> eval_a -$ (eval env b))
   | Times(a, b) -> handle env a (fun eval_a -> eval_a *$ (eval env b))
   | Divide(a, b) -> handle env a (fun eval_a -> eval_a /$ (eval env b))
-  | Reference(r) -> handle env r (function Env.Int(i) -> Env.RefInt(ref i) | _ -> raise Not_An_Int)
-  | Deference(r) -> handle env r (function Env.RefInt(i) -> Env.Int(!i) | _ -> raise Not_A_Reference)
+  | Reference(r) -> handle env r (function i -> Env.RefValue(ref i))
+  | Deference(r) -> handle env r (function Env.RefValue(i) -> !i | _ -> raise Not_A_Reference)
   | Imp(a, b) -> handle env a (fun eval_a -> eval env b)
   | Comma(a, b) -> handle env a (fun eval_a -> handle env b (fun eval_b -> Env.Couple(eval_a, eval_b)))
   | Set(v, b) ->
     handle env b (
       fun eval_b ->
-        let rvalue = match eval_b with Env.Int(i) -> i | _ -> raise Not_An_Int in
-        let lvalue = match Env.search env v with Env.RefInt(r) -> r | _ -> raise Not_A_Reference in
+        let rvalue = eval_b in
+        let lvalue = match Env.search env v with Env.RefValue(r) -> r | _ -> raise Not_A_Reference in
         lvalue := rvalue;
-        Env.Int(rvalue)
+        rvalue
     )
-  | AMake(e) -> handle env e (function Env.Int(i) -> Env.Array(Array.make i 0) | _ -> raise Not_An_Int)
+  | AMake(e) -> handle env e (function Env.Int(i) -> Env.Array(Array.make i (Env.Int(0))) | _ -> raise Not_An_Int)
   | ArrayAccess(varTab, eIndex) ->
     let tab = Env.search env varTab in (
     match tab with
      | Env.Array(t) ->
        handle env eIndex (
          function
-         | Env.Int(i) -> Env.Int(t.(i))
+         | Env.Int(i) -> t.(i)
          | _ -> raise Not_An_Int
        )
      | _ -> raise Not_An_Array
@@ -130,9 +131,7 @@ and eval env = function
 
     handle env eIndex (function
         | Env.Int(i) -> handle env eValue (
-            function
-            | Env.Int(v) -> (tab.(i) <- v; Env.Int(0))
-            | _ -> raise Not_An_Int
+            function v -> (tab.(i) <- v; v)
           )
         | _ -> raise Not_An_Int
       )
@@ -148,4 +147,5 @@ and eval env = function
             return
         )
       | _-> raise Not_A_Closure
-    );;
+    )
+  ;;

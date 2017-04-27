@@ -66,7 +66,8 @@ let free_variable_list e =
     | Let_match(x, y, e1, e2) ->
       let l_x = if List.mem x linked_v then linked_v else x::linked_v in
       let l_xy = if List.mem y l_x then l_x else y::l_x in
-      merge l_xy (aux linked_v e1)
+      let l = aux l_xy e2 in
+      merge l (aux linked_v e1)
     | Function_arg(x, e1) ->
       if List.mem x linked_v
         then aux linked_v e1

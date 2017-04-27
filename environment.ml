@@ -21,8 +21,8 @@ functor (Dict : PushDictionary) ->
     type value =
       | Int of int
       | Closure of expr * value Dict.dict
-      | RefInt of int ref
-      | Array of int array
+      | RefValue of value ref
+      | Array of value array
       | Raise_except of value
       | Couple of value * value
     ;;
@@ -44,12 +44,12 @@ functor (Dict : PushDictionary) ->
     let rec printValue = function
       | Array(t) -> print_string "- Array :\n";
                   for i = 0 to (Array.length t) -1 do
-                    print_int t.(i); print_string "\n";
+                    printValue t.(i); print_string "\n";
                   done;
       | Raise_except(a) -> print_string "- : exception :\n"; printValue a;
       | Int(i) -> print_string "- : int = "; print_int i
       | Closure(f, e') -> print_string "- : function = "; PrintExpr.printExpr stdout f
-      | RefInt(r) -> print_string "- : int ref = "; print_int (!r)
+      | RefValue(r) -> print_string "- : value ref = "; printValue (!r)
       | Couple(a, b)-> print_string "- : value * value = ("; printValue a; print_string ", "; printValue b; print_string ")"
     ;;
 

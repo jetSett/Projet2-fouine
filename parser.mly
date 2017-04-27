@@ -79,9 +79,13 @@ lvariable:
   | variable lvariable                          {       $1::$2                            }
 ;
 
-expr:
-  | expr sexpr                                  {     Apply($1, $2)                       }
-  | sexpr                                       {     $1                                  }
+sexpr:
+  | variable                                    {       Variable($1)                           }
+  | INT					                        {       Const_int($1)                          }
+  | TRUE                                        {       Const_bool(true)                       }
+  | FALSE                                       {       Const_bool(false)                      }
+  | LPARENT expr RPARENT                        {       $2                                     }
+  | LPARENT RPARENT                             {       Unit                                   }
 ;
 
 dexpr:
@@ -90,26 +94,26 @@ dexpr:
   | LET variable COMMA variable EQ expr STP dexpr {     Let_match($2, $4, $6, $8)           }
   | expr                                          {     $1                                  }
 
-sexpr:
+expr:
   | IF bexpr THEN expr ELSE expr                {     IfThenElse($2, $4, $6)              }
   | PRINT expr                                  {     PrInt($2)                           }
   | expr IMP expr                               {     Imp($1, $3)                         }
 
   | LET REC variable lvariable EQ expr IN expr    {     Let_rec($3, map_fun $4 $6, $8)      }
   | LET variable lvariable EQ expr IN expr        {     Let_in($2, map_fun $3 $5, $7)       }
-  | LET variable COMMA variable EQ expr IN dexpr  {     Let_match($2, $4, $6, $8)           }
+  | LET variable COMMA variable EQ expr IN expr   {     Let_match($2, $4, $6, $8)           }
   | FUN variable lvariable RARROW expr            {     Function_arg($2, map_fun $3 $5)     }
 
   | expr COMMA expr                             {     Comma($1, $3)                       }
 
   | TRY expr WITH EXCEPT variable RARROW expr    {     TryWith($2, $5, $7)                 }
-  | RAISE LPARENT EXCEPT expr RPARENT            {     Raise($4)                           }
+  | RAISE LPARENT EXCEPT sexpr RPARENT           {     Raise($4)                           }
 
   | REF expr                                    {     Reference($2)                       }
   | DEREF expr                                  {     Deference($2)                       }
   | variable SET expr                           {     Set($1, $3)                         }
 
-  | AMAKE expr                                      {     AMake($2)                       }
+  | AMAKE sexpr                                     {     AMake($2)                       }
   | variable POINT LPARENT expr RPARENT LARROW expr {     ArrayWrite($1, $4, $7)          }
   | variable POINT LPARENT expr RPARENT             {     ArrayAccess($1, $4)             }
 
@@ -126,9 +130,12 @@ sexpr:
 
   | LPARENT expr RPARENT                        {     $2                                  }
   | LPARENT RPARENT                             {     Unit                                }
+
+  | funct_call                                  {     $1                                  }
 ;
 
 bexpr:
+  | LPARENT bexpr RPARENT                     {     $2                                  }
   | expr EQ expr                              {     Eq($1, $3)                          }
   | expr NEQ expr                             {     Neq($1, $3)                         }
   | expr LT expr                              {     Lt($1, $3)                          }
@@ -138,4 +145,9 @@ bexpr:
   | bexpr AND bexpr                           {     And($1, $3)                         }
   | bexpr OR bexpr                            {     Or($1, $3)                          }
   | NOT bexpr                                 {     Not($2)                             }
+;
+
+funct_call:
+  | funct_call sexpr                            {     Apply($1, $2)                       }
+  | sexpr sexpr                                 {     Apply($1, $2)                       }
 ;
