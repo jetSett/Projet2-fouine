@@ -76,7 +76,7 @@ let run () =
     end;
 
   print_string "stdout of ./fouine :\n";
-  let result_trans = Apply(transformation_cont result, Function_arg(vX, Variable(vX))) in
+  let result_trans = Apply(transformation_cont !result, Function_arg(vX, Variable(vX))) in
   let value = eval (Env.create ()) result_trans in
   Env.printValue value;
   print_newline ();
