@@ -146,10 +146,4 @@ let rec transformation_cont expr = match expr with
         ), Variable vEnvE)
     )
 
-  | Let_rec(var, e1, e2) -> let vX = get_next_variable () in transfo (
-      Apply( Apply(transformation_cont e1,
-          Function_arg(vX, Let_rec(var, Variable vX, Apply(Apply(transformation_cont e2, Variable vEnv), Variable vEnvE)))
-        ), Variable vEnvE )
-    )
-
   | _ -> raise Not_Implemented
