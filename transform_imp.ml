@@ -7,6 +7,7 @@ let mem_str =
   "let mem = aMake "^size_max^";;\n\n"
 ;;
 
+(*Create a new index and return it*)
 let allocate_str =
   "let allocate =
     (fun v ->
@@ -30,10 +31,10 @@ let lib = mem_str ^ allocate_str ^ read_str ^ write_str;;
 
 let transform_imp e =
   let rec aux = function
-    | Reference(r) -> "(let v = "^(aux r)^" in allocate v)"
-    | Deference(r) -> "(let r = "^(aux r)^" in read r)"
-    | Imp(a, b) -> "(let ignore_ = "^(aux a)^" in "^(aux b)^")"
-    | Set(Var(adr), v) -> "(let adr, v = "^adr^", "^(aux v)^" in write adr v)"
+    | Reference(r) -> "(let v = "^(aux r)^" in allocate v)" (*call allocate*)
+    | Deference(r) -> "(let r = "^(aux r)^" in read r)" (*call read*)
+    | Imp(a, b) -> "(let ignore_ = "^(aux a)^" in "^(aux b)^")" (* ignore the value of the first evaluation *)
+    | Set(Var(adr), v) -> "(let adr, v = "^adr^", "^(aux v)^" in write adr v)" (*call write*)
     | Unit -> "()"
     | Raise(e) -> "(raise "^(aux e)^")"
     | PrInt(e) -> "(prInt "^(aux e)^")"
@@ -65,4 +66,6 @@ let transform_imp e =
     | ArrayWrite(Var(varTab), e1, e2) -> "("^varTab^".("^(aux e1)^") <- "^(aux e2)^")"
     | Comma(a, b) -> "("^(aux a)^", "^(aux b)^")"
   in
-  let prog = lib^(aux e)^";;" in prog;;
+  let prog = lib^(aux e)^";;" in
+  let lexbuf = Lexing.from_string prog in
+  let parse () = Parser.main Lexer.token lexbuf in parse ();;
