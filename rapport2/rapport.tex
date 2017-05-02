@@ -30,6 +30,14 @@ Pas grand chose à dire. J'ai dû rajouter des règles dans le \textit{parser} :
   
 La création de couples et leur utilisation ne pose aucun problème.  
   
+\section{Les tableaux}
+
+Codé par Joël
+
+Pas grand chose à dire non plus. J'ai rajouté de nouvelles valeurs dans l'environement, et rajouté 3 mots clefs. Il a fallu aussi pour la gestion de la machine à pile, rajouter quelques valeurs pour les types.
+
+Pour plus de facilité, j'ai décidé que l'affectation dans un tableau, et l'accès à une case ne se feraient que par des variables. On ne peut accéder au contenu d'un tableau que par l'intermédiaire une variable le contenant. 
+  
 \section{Les références universelles}  
 
 Codé par Louis.  
@@ -75,5 +83,32 @@ Reste enfin une discussion sur \textit{Comment choisir i ?}.
 \item Pareil qu'avant, mais on étend la mémoire d'une case quand nécessaire. Il faut donc rajouter des instructions pour agrandir des tableaux. 
 \end{enumerate}
 
+\section{Fouine + exceptions $\rightarrow$ Fouine}
+Codé par Joël
+
+La compréhension du phénomène de continuation a été plutot pathogène : je ne pouvais pas suivre le cours (comme convenu précedemment avec M.Hirschkoff) et les implémentations des différentes continuations en fonctions des expressions m'étaient alors inconnues vue qu'elles n'étaient pas présentes sur les slides du cours...
+
+J'ai donc passé un temps très long à chercher comment transformer les programmes par moi même.
+
+Une fois que j'ai eu les notes du cours (que je n'ai jamais cherché à trouver, puisque j'étais persuadé que c'était à nous de chercher comment transformer ces programmes...) tout est devenu plus facile ! Il se trouve tout de même que beaucoup des choses que j'avais trouvé par moi même (notamment sur les let in) étaient bien les choses présentes dans le cours.
+
+Après avoir lu le cours, il m'a fallu 2 minutes montre en main pour faire fonctionner pleinement le code sur lequel je travaillais depuis 2 semaines.
+
+L'implémentation n'a pas demandé trop d'efforts. Le choix que j'ai fait est le suivant : on travaille par renommage : on a une fonction qui va créer des variables à la chaine (avec des noms aussi imaginatifs que "V42") et deux paramètres qui sont globaux : vEnv et vEnvE, respectivement pour la continuation simple et la continuation avec exception. Lorsque j'écris mes transformations, j'utilise la fonction "transfo" qui se charge d'encapsuler une expression dans une fonction prenant en paramètre deux variables crées sur l'instant. On renomme alors toutes les occurences des variables vEnv et vEnvE par les noms de variables nouvellements créés. Cela crée une facilité de code bienvenue au vue de l'enfer de rigueur que demande les différentes transformation.
+
+Il faut noter que ces questions de renommage concernent uniquement les variables générées par mon code : les variables déclarées par le programmeur fouine (si il existe...) ne sont pas renommées.
+
+A noter aussi que en fouine, les noms de variables doivent commencer forcément par des caractères minuscules, et que donc les variables que je crée ont un nom commençant par une majuscule pour éviter les conflits.
+
+\subsection{Fonctions récursives : non implémentation}
+J'ai trouvé sur internet un moyen de gérer les fonctions récusives au moyen du Lambda calcul et comme je n'ai pas pu trouver comment gérer les let rec dans le cours j'ai voulu implémenter ce qui se trouve sur cette page : http://www.cs.cornell.edu/courses/cs3110/2013sp/supplemental/lectures/lec29-fixpoints/lec29.html.
+
+Je n'ai simplement pas eu le temps de le faire, mais je vais donner l'idée ici :
+
+L'idée est de créer la fonction $Y$ du lambda calcul. Cette fonction prend en paramètre une fonction récursive ouverte (par exemple fact n F = if n = 0 then 1 else n*F(n-1) ) et en fait une version récursive. Cela est rendu possible par les outils que nous avons dans Fouine.
+
+Ensuite, il faut changer la définition des fonctions récursives pour les rendre récursives ouvertes (pourquoi pas par réécriture?) et enfin appliquer $Y$.
+
+Le manque de temps m'a empéché de faire cela. Si cela est necessaire je le ferais pour un prochain rendu.
 
 \end{document}
