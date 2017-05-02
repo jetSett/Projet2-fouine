@@ -5,13 +5,16 @@ exception Not_Implemented;;
 (* upercase because this is forbiden to use upercase starting variables *)
 let vEnv = Var("K") and vEnvE = Var("KE")
 
+(* renaming tools : we create a lot a new variables with beautiful names *)
 let indexVar = ref 0
 let get_next_variable () = incr indexVar; Var(String.concat "" ["V"; (string_of_int !indexVar)])
 
 
-let ident = Function_arg(Var("X"), Variable(Var("X")))
-let neutral_continuation = ident
+(* used for the main : we need something to give to our programs... *)
+let neutral_continuation = Function_arg(Var("X"), Variable(Var("X")))
 
+
+(* Rename the variable vEnv and vEnvE by two new variables *)
 let rec replace_vEnv vE vEx e = match e with
 | Unit | Const_int(_) | Const_bool(_) -> e
 | Variable(v) when v=vEnv-> Variable(vE)
@@ -43,17 +46,24 @@ let rec replace_vEnv vE vEx e = match e with
 | ArrayWrite(v, e1, e2) -> ArrayWrite(v, replace_vEnv vE vEx e1, replace_vEnv vE vEx e2)
 | _ -> raise Not_Implemented
 
+
+(* encapsulate the ugly functions *)
 let transfo e = let vE, vEx = get_next_variable (), get_next_variable () in
                 Function_arg(vE, Function_arg(vEx, replace_vEnv vE vEx e))
 
+
+(* for the 0 parameters *)
 let transfo_0 e = transfo (Apply(Variable(vEnv), e))
 
+
+(* in fact, only use for Not *)
 let transfo_1 e vX finalX = transfo (Apply(e,
                                   Function_arg(vX,
                                     Apply(Apply(Variable(vEnv), finalX), Variable vEnvE)
                                   )
                                 ))
 
+(* transformation for the 2 param operators (Plus, Min, Times...) *)
 let transfo_2 e1 e2 vX vY finalXY =
   transfo ( Apply(Apply(e2,
       Function_arg(vY, Apply(Apply(e1,
@@ -63,6 +73,8 @@ let transfo_2 e1 e2 vX vY finalXY =
   Variable vEnvE)
   )
 
+
+(* The transformation itself *)
 let rec transformation_cont expr = match expr with
   | Unit | Variable(_) | Const_int(_) | Const_bool(_) -> transfo_0 expr
   | Not(e) -> let vX = get_next_variable () in transfo_1 (transformation_cont e) vX (Not(Variable(vX)))
@@ -98,7 +110,7 @@ let rec transformation_cont expr = match expr with
     transfo (Apply( Apply( transformation_cont b,
         Function_arg(vX, IfThenElse(Variable(vX), Apply ( Apply (transformation_cont e1, Variable(vEnv)), Variable vEnvE),
                                                   Apply ( Apply (transformation_cont e2, Variable vEnv), Variable vEnvE)))
-       ) ,Variable vEnvE))
+       ) ,Variable vEnvE)) (* not so complicated : we only fork on the value of the evaluation of b *)
 
   | Let_in(var, e1, e2) -> transfo
                               (Apply( Apply (transformation_cont e1,
@@ -115,7 +127,7 @@ let rec transformation_cont expr = match expr with
                                 Apply (Apply(transformation_cont f, Function_arg(vF,
                                   Apply(Apply(Apply(Variable(vF), Variable(vX)), Variable(vEnv)), Variable vEnvE)
                                 )), Variable vEnvE)
-                              )), Variable vEnvE))
+                              )), Variable vEnvE)) (* Isn't it lovely ? *)
 
   | PrInt(e) -> let vX = get_next_variable () in transfo (Apply(Apply(transformation_cont e,
                           Function_arg(vX, Apply(Variable(vEnv), PrInt(Variable(vX))))), Variable vEnvE))
@@ -134,7 +146,7 @@ let rec transformation_cont expr = match expr with
                 Function_arg( vX , Apply ( Apply(transformation_cont index,
                     Function_arg (vI, Apply (Variable vEnv, ArrayWrite(var, Variable vI, Variable vX)))
                   ), Variable vEnvE ) )
-              ), Variable vEnvE ) )
+              ), Variable vEnvE ) ) (* Isn't it lovely ? *)
   | AMake(e) -> let vX = get_next_variable () in
             transfo ( Apply ( Apply ( transformation_cont e,
                 Function_arg(vX, Apply(Variable vEnv, AMake(Variable vX) ))
@@ -144,6 +156,6 @@ let rec transformation_cont expr = match expr with
       Apply(Apply(transformation_cont e1,
           Function_arg(vX, Let_match(v1, v2, Variable vX, Apply(Apply(transformation_cont e2, Variable vEnv), Variable vEnvE)))
         ), Variable vEnvE)
-    )
+    )  (* "systeme D" : I use the definition of let_Match to create let_Match... not so good but it works*)
 
-  | _ -> raise Not_Implemented
+  | _ -> raise Not_Implemented (* Let rec not implemented, cf rapport *)
