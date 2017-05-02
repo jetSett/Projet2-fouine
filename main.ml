@@ -29,6 +29,10 @@ let print_output name =
 ;;
 
 let transform_imp_enable = ref false;;
+let transform_exn_enable = ref false;;
+let transform_set_both () =
+  transform_imp_enable := true;
+  transform_exn_enable := true;;
 
 let expr_input = ref stdin;;
 let command = ref true;;
@@ -40,7 +44,9 @@ let options_list = [
   ("-debug", (Arg.Set debug_enable), "Print the program");
   ("-machine", (Arg.Set machine_enable), "Run the SECD machine");
   ("-interm", (Arg.String print_output), "Produce the SECD program");
-  ("-R", (Arg.Set transform_imp_enable), "Remove imperatives instructions")
+  ("-R", (Arg.Set transform_imp_enable), "Remove imperatives instructions");
+  ("-E", (Arg.Set transform_exn_enable), "Remove exception instructions");
+  ("-ER", (Arg.Unit transform_set_both), "Combine -E and -R options")
 ];;
 
 let usage_msg = "Please read the rapport for further details";;
@@ -67,16 +73,24 @@ let run () =
       if !debug_enable then (
         print_string "Transformed program : without References\n";
         print_string transformed;
-        print_newline ();
-        print_newline ()
+        print_string "\n\n"
       );
       let lexbuf = Lexing.from_string transformed in
       let parse () = Parser.main Lexer.token lexbuf in
       result := (parse ())
     end;
 
+  if !transform_exn_enable then
+    begin
+      result := (Apply(transformation_cont !result, Function_arg(vX, Variable(vX))));
+      if !debug_enable then (
+        print_string "Transformed program : without Exceptions\n";
+        printExpr (!result);
+        print_string "\n\n"
+      );
+    end;
+
   print_string "stdout of ./fouine :\n";
-  let result_trans = Apply(transformation_cont !result, Function_arg(vX, Variable(vX))) in
   let value = eval (Env.create ()) result_trans in
   Env.printValue value;
   print_newline ();

@@ -1,6 +1,7 @@
 open Expression;;
 
-let size_max = "1000";;
+let memoryMax = ref 4096;;
+let size_max = string_of_int (!memoryMax);;
 
 let mem_str =
   "let mem = aMake "^size_max^";;\n\n"
@@ -31,7 +32,7 @@ let transform_imp e =
   let rec aux = function
     | Reference(r) -> "(let v = "^(aux r)^" in allocate v)"
     | Deference(r) -> "(let r = "^(aux r)^" in read r)"
-    | Imp(a, b) -> "(let ignore = "^(aux a)^" in "^(aux b)^")"
+    | Imp(a, b) -> "(let ignore_ = "^(aux a)^" in "^(aux b)^")"
     | Set(Var(adr), v) -> "(let adr, v = "^adr^", "^(aux v)^" in write adr v)"
     | Unit -> "()"
     | Raise(e) -> "(raise "^(aux e)^")"
