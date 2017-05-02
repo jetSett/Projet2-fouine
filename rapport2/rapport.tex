@@ -1,0 +1,79 @@
+\documentclass[a4paper,10pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{fullpage}
+
+% Title Page
+\title{Rendu 2 Projet 2}
+\author{Louis Bethune et Jo\"el Felderhoff}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Le programme}
+
+Les différentes options de la ligne de commande marchent exactement comme dans l'énoncé. Seule \textbf{NbE} n'est pas prise en compte (car la fonctionnalité associée n'a pas été implémentée).
+
+Notons que l'énoncé a été pris au pied de la lettre. Ainsi on peut aller de $fouine + exception \rightarrow fouine$ (avec les continuations), on peut aller de $fouine + exception + imperatif \rightarrow fouine + exception$ (avec la simulation de mémoire). Mais $fouine + exception + imperatif \rightarrow fouine + imperatif$ est impossible.  
+  
+En effet, la transformation par continuations exige que les aspects impératif aient été éliminés.  
+  
+Nous avons rajouté l'option \textbf{-setmemlimit} qui attend un entier en argument. Elle correspond au nombre maximum de références pouvant être stockées en mémoire. Cette option est optionnelle (n'est-ce pas ?), car par défaut la mémoire est limitée à 4096 références (ce qui suffit souvent).   
+  
+\section{Les couples}
+
+Codé par Louis.  
+  
+Pas grand chose à dire. J'ai dû rajouter des règles dans le \textit{parser} : une pour la création du couple (avec l'opérateur comma), et une pour le \textit{pattern matching} dans le \textbf{let a,b  = .. in}. Nous avons enrichi l'environnement avec un type couple.  
+  
+La création de couples et leur utilisation ne pose aucun problème.  
+  
+\section{Les références universelles}  
+
+Codé par Louis.  
+  
+Une fois encore, rien de vraiment intéressant. Le type \textbf{Env.RefInt of int ref} est devenu \textbf{Env.RefValue of value ref}, et le reste du code n'a pour ainsi dire pas changé. Maintenant on peut avoir des références sur entier, tableau, références, clôtures... tout va bien.  
+  
+\section{Le Lexer/Parser}  
+Codé par Léo Valque et Guillaume Coiffier.  
+  
+Vous souvenez vous de nos innombrables \textit{shift/reduce} et \textit{reduce/reduce} ?  
+  
+C'est maintenant résolu, en seulement 3 lignes, avec une nouvelle règle \textbf{funct\_{}call} dans le parser (tout à la fin du fichier). Je n'ai aucune mérite, j'ai honteusement copié sur le travail du binôme sus-nommé, le mérite leur revient.  
+
+\newpage
+  
+\section{fouine + imperatif $\rightarrow$ fouine}  
+Codé par Louis.  
+  
+Alors, comme vous le signaliez, j'avais plusieurs choix.  
+
+\begin{itemize}
+\item Soit chaque instruction devient une fonction qui prend la mémoire en argument. Et cette mémoire, je n'ai pas d'autre choix que d'utiliser une liste (ou n'importe quel type défini inductivement). Cela revient à rajouter beaucoup de choses à Fouine, ce qui complexifie quelque peu ma tâche, le programme devient très volumineux, très moche. 
+\item Puisque les tableau n'ont pas l'air d'être considérés comme de l'impératif, je profite de l'opportunité qui m'a été donné de les utiliser. Et là je constate que la mémoire est globale (pour le programme), donc je peux faire une unique variable globale qui sera un tableau, dont chaque case peut contenir n'importe quoi (car nos tableaux sont universels comme nos références). Cala revient juste à rajouter une variable globale mémoire, et trois primitives pour créer des références, les déférencer et les ré-affecter.  
+\end{itemize}
+
+\textbf{mem} est mon tableau de taille \textbf{memoryMax}. \textbf{memoryMax} vaut 4096 par défaut mais sa valeur peut être décidée à l'interprétation avec l'option déjà mentionnée. La fonction \textbf{allocate} sert à créer une nouvelle référence. La fonction \textbf{read} renvoie le contenu de la référence passée en argument. La fonction \textbf{write} modifie le contenu de la référence passée en argument avec la nouvelle \textbf{value} passée en argument.
+  
+Voici mon raisonnement. Une référence c'est une adresse. Une adresse c'est un entier. Et cet entier servira à indexer mon tableau \textbf{mem}.  
+  
+La fonction \textbf{allocate} a ainsi deux rôles :
+
+\begin{enumerate}
+\item Choisir un entier $i$ tel que \textbf{mem.(i)} soit vide, puis mettre la valeur $v$ dedans. Autrement, choisir un coffre vide et le remplir.  
+\item Renvoyer cet entier $i$. Autrement dit, renvoyer la clef du coffre.  
+\end{enumerate}
+
+Cela permet de mieux comprendre comment \textbf{read} et \textbf{write} fonctionnent. Ils prennent simplement la clef (l'entier $i$) en argument, accèdent à \textbf{mem.(i)}, et modifient sa valeur ou la renvoient en conséquence.  
+  
+Reste enfin une discussion sur \textit{Comment choisir i ?}.  
+
+\begin{enumerate}
+\item Faire un tableau de taille finie et fixe. Stocker le prochain indice disponible dans mem.(0) (donc par défaut cette valeur vaut $1$). L'incrémenter à chaque création de référence pour allouer une nouvelle case. Si un jour $i$ dépasse la limite de mémoire, alors on meurt.
+\item Pareil qu'avant, mais on étend la mémoire d'une case quand nécessaire. Il faut donc rajouter des instructions pour agrandir des tableaux. 
+\end{enumerate}
+
+
+\end{document}

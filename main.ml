@@ -82,16 +82,15 @@ let run () =
 
   if !transform_exn_enable then
     begin
-      result := (Apply(transformation_cont !result, Function_arg(vX, Variable(vX))));
+      result := (Apply(Apply(transformation_cont !result, neutral_continuation), neutral_continuation));
       if !debug_enable then (
         print_string "Transformed program : without Exceptions\n";
-        printExpr (!result);
-        print_string "\n\n"
+        printProg (!result)
       );
     end;
 
   print_string "stdout of ./fouine :\n";
-  let value = eval (Env.create ()) result_trans in
+  let value = eval (Env.create ()) (!result) in
   Env.printValue value;
   print_newline ();
 
