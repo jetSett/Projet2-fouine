@@ -38,6 +38,9 @@ let rec replace_vEnv vE vEx e = match e with
 | Lte(e1, e2) -> Lte(replace_vEnv vE vEx  e1, replace_vEnv vE vEx  e2)
 | Gte(e1, e2) -> Gte(replace_vEnv vE vEx  e1, replace_vEnv vE vEx  e2)
 | Comma(e1, e2) -> Comma(replace_vEnv vE vEx  e1, replace_vEnv vE vEx  e2)
+| AMake(e) -> AMake(replace_vEnv vE vEx e)
+| ArrayAccess(v, e) -> ArrayAccess(v, replace_vEnv vE vEx e)
+| ArrayWrite(v, e1, e2) -> ArrayWrite(v, replace_vEnv vE vEx e1, replace_vEnv vE vEx e2)
 | _ -> raise Not_Implemented
 
 let transfo e = let vE, vEx = get_next_variable (), get_next_variable () in
@@ -88,6 +91,9 @@ let rec transformation_cont expr = match expr with
   | Divide(e1, e2) -> let vX, vY = get_next_variable (), get_next_variable () in
                       transfo_2 (transformation_cont e1) (transformation_cont e2) vX vY (Divide(Variable(vX), Variable(vY)))
 
+  | Comma(e1, e2) -> let vX, vY = get_next_variable (), get_next_variable () in
+                      transfo_2 (transformation_cont e1) (transformation_cont e2) vX vY (Comma(Variable(vX), Variable(vY)))
+
   | IfThenElse(b, e1, e2) -> let vX = get_next_variable () in
     transfo (Apply( Apply( transformation_cont b,
         Function_arg(vX, IfThenElse(Variable(vX), Apply ( Apply (transformation_cont e1, Variable(vEnv)), Variable vEnvE),
@@ -100,8 +106,6 @@ let rec transformation_cont expr = match expr with
                                   Apply(Apply(transformation_cont e2, Variable(vEnv)), Variable vEnvE)
                                 )), Variable vEnvE)
                             )
-
-  (* | Let_rec(var, e1, e2) -> transfo (Let_rec(var, Apply(transformation_cont e1, ident), Apply(transformation_cont e2, Variable vEnv))) *)
 
   | Function_arg(x, e) -> transfo (Apply (Variable(vEnv), Function_arg(x, transformation_cont e)))
 
@@ -121,5 +125,31 @@ let rec transformation_cont expr = match expr with
                         Function_arg(var, Apply (Apply(transformation_cont e2, Variable vEnv), Variable vEnvE)
                           )))
   | Raise(e) -> transfo (Apply(Apply(transformation_cont e, Variable vEnvE), Variable vEnvE))
+
+  | ArrayAccess(var, e) -> let vX = get_next_variable () in
+            transfo (Apply(Apply(transformation_cont e, Function_arg(vX, Apply(Variable vEnv, ArrayAccess(var, Variable vX)) )), Variable vEnvE))
+
+  | ArrayWrite(var, index, value) -> let vX, vI = get_next_variable (), get_next_variable () in
+            transfo (Apply ( Apply ( transformation_cont value ,
+                Function_arg( vX , Apply ( Apply(transformation_cont index,
+                    Function_arg (vI, ArrayWrite(var, Variable vI, Variable vX))
+                  ), Variable vEnvE ) )
+              ), Variable vEnvE ) )
+  | AMake(e) -> let vX = get_next_variable () in
+            transfo ( Apply ( Apply ( transformation_cont e,
+                Function_arg(vX, Apply(Variable vEnv, AMake(Variable vX) ))
+               ) , Variable vEnvE ) )
+
+  | Let_match(v1, v2, e1, e2) -> let vX = get_next_variable () in transfo (
+      Apply(Apply(transformation_cont e1,
+          Function_arg(vX, Let_match(v1, v2, Variable vX, Apply(Apply(transformation_cont e2, Variable vEnv), Variable vEnvE)))
+        ), Variable vEnvE)
+    )
+
+  | Let_rec(var, e1, e2) -> let vX = get_next_variable () in transfo (
+      Apply( Apply(transformation_cont e1,
+          Function_arg(vX, Let_rec(var, Variable vX, Apply(Apply(transformation_cont e2, Variable vEnv), Variable vEnvE)))
+        ), Variable vEnvE )
+    )
 
   | _ -> raise Not_Implemented
