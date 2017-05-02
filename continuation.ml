@@ -132,7 +132,7 @@ let rec transformation_cont expr = match expr with
   | ArrayWrite(var, index, value) -> let vX, vI = get_next_variable (), get_next_variable () in
             transfo (Apply ( Apply ( transformation_cont value ,
                 Function_arg( vX , Apply ( Apply(transformation_cont index,
-                    Function_arg (vI, ArrayWrite(var, Variable vI, Variable vX))
+                    Function_arg (vI, Apply (Variable vEnv, ArrayWrite(var, Variable vI, Variable vX)))
                   ), Variable vEnvE ) )
               ), Variable vEnvE ) )
   | AMake(e) -> let vX = get_next_variable () in
