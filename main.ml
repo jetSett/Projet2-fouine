@@ -80,6 +80,7 @@ let run () =
 
   if !transform_exn_enable then
     begin
+      (* We must apply 2 functions to our transformed program, else it is only a function... *)
       result := (Apply(Apply(transformation_cont !result, neutral_continuation), neutral_continuation));
       if !debug_enable then (
         print_string "Transformed program : without Exceptions\n";
