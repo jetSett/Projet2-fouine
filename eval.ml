@@ -37,12 +37,12 @@ and eval env = function
     let v = Env.search env x in v
   | Let_in(x, expr_x, b) ->
     handle env expr_x (fun val_x ->
-        Env.push env x val_x;
-        let return = eval env b in
-        Env.pop env x;
+        Env.push env x val_x; (*Ajouter e l'environnement*)
+        let return = eval env b in (*Evaluer le contexte*)
+        Env.pop env x; (*Retirer de l'environnement*)
         return
       )
-  | Let_match(x, y, expr_xy, b) ->
+  | Let_match(x, y, expr_xy, b) -> (*Comme avant, mais avec 2 identificateurs*)
     handle env expr_xy (
       function
       | Env.Couple(val_x, val_y) ->
@@ -57,7 +57,7 @@ and eval env = function
   | Let_rec(f, expr_f, b) ->
     let naive = free_variable_list expr_f in
     let vars = List.filter (fun v -> v <> f) naive in (*f is not a free variable*)
-    let env_rec = Env.env_free_var env vars in
+    let env_rec = Env.env_free_var env vars in (*Recuperer les variables libres pour garder la partie de l'environnement interessante*)
     let closure = Env.Closure(expr_f, env_rec) in (*create closure c with env_rec*)
     Env.push env_rec f closure; (*push c into env_rec*)
     Env.push env f closure;
@@ -140,11 +140,11 @@ and eval env = function
       function
       | Env.Closure(Function_arg(x, expr), e) ->
         handle env arg (
-          fun eval_arg ->
-            Env.push e x eval_arg;
-            let return = eval e expr in
-            Env.pop e x;
-            return
+          fun eval_arg -> (*evalue l'argument*)
+            Env.push e x eval_arg; (*remplace le nom du paramtre par l'evaluation*)
+            let return = eval e expr in (*evalue le contenu de la cloture*)
+            Env.pop e x; (*retirer le parametre de l'environnement*)
+            return (*renvoyer le resultat*)
         )
       | _-> raise Not_A_Closure
     )
