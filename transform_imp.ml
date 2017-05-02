@@ -61,7 +61,7 @@ let transform_imp e =
     | Lte(a, b) -> "("^(aux a)^" <= "^(aux b)^")"
     | Gte(a, b) -> "("^(aux a)^" >= "^(aux b)^")"
     | AMake(e) -> "(aMake "^(aux e)^")"
-    | ArrayAccess(Var(varTab), e2) -> "("^varTab^".("^(aux e2)^")"
+    | ArrayAccess(Var(varTab), e2) -> "("^varTab^".("^(aux e2)^"))"
     | ArrayWrite(Var(varTab), e1, e2) -> "("^varTab^".("^(aux e1)^") <- "^(aux e2)^")"
     | Comma(a, b) -> "("^(aux a)^", "^(aux b)^")"
   in
