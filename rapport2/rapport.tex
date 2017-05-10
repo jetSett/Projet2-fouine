@@ -5,7 +5,7 @@
 \usepackage{fullpage}
 
 % Title Page
-\title{Rendu 2 Projet 2}
+\title{Rendu 3 Projet 2}
 \author{Louis Bethune et Jo\"el Felderhoff}
 \date{}
 
@@ -59,7 +59,7 @@ Codé par Louis.
 Alors, comme vous le signaliez, j'avais plusieurs choix.  
 
 \begin{itemize}
-\item Soit chaque instruction devient une fonction qui prend la mémoire en argument. Et pour cette mémoire, je n'ai pas d'autre choix que d'utiliser une liste (ou n'importe quel type défini inductivement). Cela revient à rajouter beaucoup de choses à Fouine, ce qui complexifie quelque peu ma tâche, le programme devient très volumineux, très moche. 
+\item Soit chaque instruction devient une fonction qui prend la mémoire en argument. Et cette mémoire, je n'ai pas d'autre choix que d'utiliser une liste (ou n'importe quel type défini inductivement). Cela revient à rajouter beaucoup de choses à Fouine, ce qui complexifie quelque peu ma tâche, le programme devient très volumineux, très moche. 
 \item Puisque les tableau n'ont pas l'air d'être considérés comme de l'impératif, je profite de l'opportunité qui m'a été donné de les utiliser. Et là je constate que la mémoire est globale (pour le programme), donc je peux faire une unique variable globale qui sera un tableau, dont chaque case peut contenir n'importe quoi (car nos tableaux sont universels comme nos références). Cala revient juste à rajouter une variable globale mémoire, et trois primitives pour créer des références, les déférencer et les ré-affecter.  
 \end{itemize}
 
@@ -80,23 +80,8 @@ Reste enfin une discussion sur \textit{Comment choisir i ?}.
 
 \begin{enumerate}
 \item Faire un tableau de taille finie et fixe. Stocker le prochain indice disponible dans mem.(0) (donc par défaut cette valeur vaut $1$). L'incrémenter à chaque création de référence pour allouer une nouvelle case. Si un jour $i$ dépasse la limite de mémoire, alors on meurt.
-\item Pareil qu'avant, mais on étend la mémoire d'une case quand nécessaire. Il faut donc rajouter des instructions pour agrandir des tableaux. Cela fait des mots clefs supplémentaires, etc..
-\item Pareil qu'avant, mais en plus on implémente un système de ramasse-miette : on a un deuxième tableau qui compte le nombre d'identificateurs qui partage le même entier (càd le nombre d'identificateurs associés à une référence), et quand ce nombre devient nulle, c'est que la case mémoire référencée ne sera plus accédée par personne et on peut la réutiliser. Alors créer des références ne sera plus en $\mathcal{O}(1)$.
+\item Pareil qu'avant, mais on étend la mémoire d'une case quand nécessaire. Il faut donc rajouter des instructions pour agrandir des tableaux. 
 \end{enumerate}
-  
-J'ai choisi la solution numéro 1 pour des raisons de facilité et de confort. 
-  
-Finalement, on remarquera que \textbf{transform\_{}imp} construit une string puis la parse, plutôt que de directement transformer l'expression en une nouvelle expression. Cela est un peu plus long (parser c'est toujours long). Mais d'un autre côté le code source est bien plus clair comme ça. Et deboguer est alors plus agréable.
-
-\textbf{Conclusion :}  
-  
-\begin{itemize}
-\item c'est court, c'est facile à coder, à déboguer
-\item c'est un peu de la triche quand même, vu que c'est pas fonctionnel pur
-\item on a maintenant 4 noms de variable réservés qu'il vaut mieux ne pas redéfinir (la mémoire et les trois primitives), pas cool pour le programmeur Fouine
-\item ça s'exécute vite, car un tableau c'est rapide en $\mathcal{O}(1)$, contrairement à une liste de paires dans Fouine qui aurait été en $\mathcal{O}(n)$, sans parler des dizaines de fonction prenant la mémoire en argument qu'on aurait dû créer.
-\item à l'interprétation on paie le coût supplémentaire de parser à nouveau l'expression transformée
-\end{itemize}
 
 \section{Fouine + exceptions $\rightarrow$ Fouine}
 Codé par Joël
