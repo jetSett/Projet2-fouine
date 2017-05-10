@@ -37,12 +37,6 @@ type expr =
   | Comma of expr * expr
 ;;
 
-let map_fun variables expr =
-  let rec aux = function
-    | [] -> expr
-    | v::xs -> Function_arg(v, aux xs)
-  in aux variables;;
-
 let free_variable_list e =
   let rec merge l1 = function
     | [] -> l1

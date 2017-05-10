@@ -1,4 +1,5 @@
 open Expression;;
+open Lexer_type;;
 
 let memoryMax = ref 4096;;
 let size_max = string_of_int (!memoryMax);;
@@ -68,4 +69,4 @@ let transform_imp e =
   in
   let prog = lib^(aux e)^";;" in
   let lexbuf = Lexing.from_string prog in
-  let parse () = Parser.main Lexer.token lexbuf in parse ();;
+  let parse () = Parser.main Lexer.token lexbuf in t_conversion (parse ());;

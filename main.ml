@@ -8,6 +8,8 @@ open Continuation;;
 open Expression;;
 open Transform_imp;;
 
+open Lexer_type;;
+
 let debug_enable = ref false;;
 
 let printProg result =
@@ -64,14 +66,24 @@ let run () =
   let lexbuf = Lexing.from_channel (!expr_input) in
   let parse () = Parser.main Lexer.token lexbuf in
 
-  let result = ref (parse ()) in
+  let t_result = parse () in
+  begin
+    try
+      check_types t_result
+      with
+      | _ -> failwith "Type error"
+  end;
+
+  let result_nontyped = t_conversion t_result in
+
+  let result = ref result_nontyped in
   if not (!command) then close_in (!expr_input);
   if !command then print_newline ();
   printProg (!result);
 
   if !transform_imp_enable then
     begin
-      result := (transform_imp (!result));
+      result := transform_imp (!result);
       if !debug_enable then (
         print_string "Transformed program : without References\n";
         printProg (!result)
@@ -111,6 +123,7 @@ let run () =
       print_string "UNSUPPORTED : ";
       printExpr stdout e;
       raise ex
+
 ;;
 
 run ();;
