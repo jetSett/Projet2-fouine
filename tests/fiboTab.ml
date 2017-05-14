@@ -12,4 +12,4 @@ let fibo n =
     aux 2
   )
   in
-prInt fibo 58;;
+prInt fibo 8;;
