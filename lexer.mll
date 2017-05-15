@@ -44,6 +44,7 @@ rule token = parse
     | "!"                   {   DEREF                   }
     | ":="                  {   SET                     }
     | ";"                   {   IMP                     }
+    | ":"                   {   DOUBLE_POINT            }
     | ","                   {   COMMA                   }
     | "try"                 {   TRY                     }
     | "with"                {   WITH                    }
@@ -51,6 +52,9 @@ rule token = parse
     | "raise"               {   RAISE                   }
     | "prInt"               {   PRINT                   }
     | "aMake"               {   AMAKE                   }
+
+    | "int"                 {   INT_T                   }
+    | "vect"                {   VECT_T                  }
 
     (* var *)
     | ['a'-'z']['a'-'z' 'A'-'Z' '_' '1'-'9']* as s {   VAR( s )  }

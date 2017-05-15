@@ -46,17 +46,19 @@ type typed_expr =
 
 (* TODO modifier cette fonction ! *)
 
+type typed_variable = T_Var of variable * fouine_type;;
+
 let map_fun variables expr =
   let rec aux = function
     | [] -> expr
-    | v::xs -> T_Function_arg(v, Nothing_t, aux xs, Nothing_t)
+    | T_Var(v, t)::xs -> T_Function_arg(v, t, aux xs, Nothing_t)
   in aux variables;;
 
 
 let rec type_correct t e = match t, e with
-  | Nothing_t, _ -> () 
-  | _, Nothing_t -> () 
-  | a, b when a=b-> () 
+  | Nothing_t, _ -> ()
+  | _, Nothing_t -> ()
+  | a, b when a=b-> ()
   | Ref_t(t1), Ref_t(t2) -> type_correct t1 t2
   | Tab_t(t1), Tab_t(t2) -> type_correct t1 t2
   | Funct_t(t1, t2), Funct_t(u1, u2) -> (type_correct t1 u1); (type_correct t2 u2)
@@ -66,22 +68,23 @@ let rec type_correct t e = match t, e with
 let variable_types = ref []
 
 (* raise exception if type mismatch *)
+
 let rec check_types e expect = match e with
   | T_Unit -> ()
-  | T_Const_int _ -> type_correct Int_t expect 
+  | T_Const_int _ -> type_correct Int_t expect
   | T_Const_bool _ -> type_correct Int_t expect
   | T_Variable(v) -> type_correct (List.assoc v !variable_types) expect
-  | T_Let_in(var, var_type, e1, e2) -> 
+  | T_Let_in(var, var_type, e1, e2) ->
     check_types e1 var_type;
     variable_types := (var, var_type)::!variable_types;
     check_types e2 expect;
     variable_types := List.remove_assoc var !variable_types;
-  | T_Let_rec(var, var_type, e1, e2) -> 
+  | T_Let_rec(var, var_type, e1, e2) ->
     variable_types := (var, var_type)::!variable_types; (* declared before the type evaluation *)
     check_types e1 var_type;
     check_types e2 expect;
     variable_types := List.remove_assoc var !variable_types;
-     
+
   | T_Let_match(v1, t1, v2, t2, e1, e2) ->
     check_types e1 (Pair_t(t1, t2));
     variable_types := (v1, t1)::(v2, t2)::!variable_types;
@@ -93,7 +96,7 @@ let rec check_types e expect = match e with
     check_types e type_ret;
     variable_types := List.remove_assoc var !variable_types;
     type_correct (Funct_t(type_var, type_ret)) expect
-  | T_Not(e) -> 
+  | T_Not(e) ->
     check_types e Int_t;
     type_correct Int_t expect;
   | T_Raise(e) ->
@@ -107,7 +110,7 @@ let rec check_types e expect = match e with
     variable_types := (var, Int_t)::!variable_types;
     check_types e2 expect;
     variable_types := List.remove_assoc var !variable_types;
-  | T_AMake(e) -> 
+  | T_AMake(e) ->
     check_types e Int_t;
     type_correct (Tab_t(Nothing_t)) expect
   | T_ArrayAccess(v, e) -> (
@@ -120,48 +123,48 @@ let rec check_types e expect = match e with
     check_types e1 Int_t;
     match List.assoc v !variable_types with
     | Nothing_t -> check_types e2 expect
-    | Tab_t(t) -> 
+    | Tab_t(t) ->
       type_correct t expect;
-      check_types e2 t 
+      check_types e2 t
   )
   | T_PrInt(e) -> check_types e Int_t
-  | T_And(e1, e2) -> 
+  | T_And(e1, e2) ->
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
-  | T_Or(e1, e2) -> 
+  | T_Or(e1, e2) ->
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
-  | T_Plus(e1, e2) -> 
+  | T_Plus(e1, e2) ->
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
-  | T_Minus(e1, e2) -> 
+  | T_Minus(e1, e2) ->
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
-  | T_Times(e1, e2) -> 
+  | T_Times(e1, e2) ->
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
-  | T_Divide(e1, e2) -> 
+  | T_Divide(e1, e2) ->
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
-  | T_Lt(e1, e2) -> 
+  | T_Lt(e1, e2) ->
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
-  | T_Gt(e1, e2) -> 
+  | T_Gt(e1, e2) ->
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
-  | T_Lte(e1, e2) -> 
+  | T_Lte(e1, e2) ->
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
-  | T_Gte(e1, e2) -> 
+  | T_Gte(e1, e2) ->
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
@@ -173,9 +176,9 @@ let rec check_types e expect = match e with
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
-    
-      
-    
+
+
+
 
 let rec t_conversion = function
   | T_Unit -> Unit

@@ -139,7 +139,7 @@ let rec transformation_cont expr = match expr with
   | Raise(e) -> transfo (Apply(Apply(transformation_cont e, Variable vEnvE), Variable vEnvE))
 
   | ArrayAccess(var, e) -> let vX = get_next_variable () in
-            transfo (Apply(Apply(transformation_cont e, Function_arg(vX, Apply(Variable vEnv, ArrayAccess(var, Variable vX)) )), Variable vEnvE))
+    transfo (Apply(Apply(transformation_cont e, Function_arg(vX, Apply(Variable vEnv, ArrayAccess(var, Variable vX)) )), Variable vEnvE))
 
   | ArrayWrite(var, index, value) -> let vX, vI = get_next_variable (), get_next_variable () in
             transfo (Apply ( Apply ( transformation_cont value ,
