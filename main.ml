@@ -69,7 +69,7 @@ let run () =
   let t_result = parse () in
   begin
     try
-      check_types t_result
+      check_types t_result Nothing_t
       with
       | _ -> failwith "Type error"
   end;
