@@ -3,16 +3,17 @@ open Expression
 exception Type_Mismatch
 
 type fouine_type = Nothing_t | Int_t | Ref_t of fouine_type | Tab_t of fouine_type
-  | Funct_t of fouine_type * fouine_type (* arg -> return *)
+		   | Pair_t of fouine_type * fouine_type
+		   | Funct_t of fouine_type * fouine_type (* arg -> return *)
 ;;
 
 type typed_expr =
   | T_Unit
   | T_Const_int of int
   | T_Const_bool of bool
-  | T_Variable of typed_variable
+  | T_Variable of variable
   | T_Let_in of variable * fouine_type * typed_expr * typed_expr
-  | T_Let_rec of variable * typed_expr * typed_expr
+  | T_Let_rec of variable * fouine_type * typed_expr * typed_expr
   | T_Let_match of variable * fouine_type * variable * fouine_type * typed_expr * typed_expr
   | T_Function_arg of variable * fouine_type  * typed_expr * fouine_type
   | T_Not of typed_expr
@@ -48,27 +49,133 @@ type typed_expr =
 let map_fun variables expr =
   let rec aux = function
     | [] -> expr
-    | v::xs -> T_Function_arg(v, aux xs, Nothing_t)
+    | v::xs -> T_Function_arg(v, Nothing_t, aux xs, Nothing_t)
   in aux variables;;
 
 
-let type_correct t e = match t, e with
-  | Nothing_t, _ -> ()
-  | _, Nothing_t -> ()
-  | a, b when a=b -> ()
+let rec type_correct t e = match t, e with
+  | Nothing_t, _ -> () 
+  | _, Nothing_t -> () 
+  | a, b when a=b-> () 
+  | Ref_t(t1), Ref_t(t2) -> type_correct t1 t2
+  | Tab_t(t1), Tab_t(t2) -> type_correct t1 t2
+  | Funct_t(t1, t2), Funct_t(u1, u2) -> (type_correct t1 u1); (type_correct t2 u2)
+  | Pair_t(t1, t2), Pair_t(u1, u2) -> (type_correct t1 u1); (type_correct t2 u2)
   | _ -> raise Type_Mismatch
 
-
+let variable_types = ref []
 
 (* raise exception if type mismatch *)
-let check_types e expect = match e with
+let rec check_types e expect = match e with
   | T_Unit -> ()
   | T_Const_int _ -> type_correct Int_t expect 
   | T_Const_bool _ -> type_correct Int_t expect
-  | T_Variable(T_Var(s, ty)) -> type_correct ty expect
-  | T_Let_in(T_Var(_, tv), e1, e2) -> 
-    check_types e1 tv;
+  | T_Variable(v) -> type_correct (List.assoc v !variable_types) expect
+  | T_Let_in(var, var_type, e1, e2) -> 
+    check_types e1 var_type;
+    variable_types := (var, var_type)::!variable_types;
+    check_types e2 expect;
+    variable_types := List.remove_assoc var !variable_types;
+  | T_Let_rec(var, var_type, e1, e2) -> 
+    variable_types := (var, var_type)::!variable_types; (* declared before the type evaluation *)
+    check_types e1 var_type;
+    check_types e2 expect;
+    variable_types := List.remove_assoc var !variable_types;
+     
+  | T_Let_match(v1, t1, v2, t2, e1, e2) ->
+    check_types e1 (Pair_t(t1, t2));
+    variable_types := (v1, t1)::(v2, t2)::!variable_types;
+    check_types e2 expect;
+    variable_types := List.remove_assoc v1 !variable_types;
+    variable_types := List.remove_assoc v2 !variable_types
+  | T_Function_arg(var, type_var, e, type_ret) ->
+    variable_types := (var, type_var)::!variable_types;
+    check_types e type_ret;
+    variable_types := List.remove_assoc var !variable_types;
+    type_correct (Funct_t(type_var, type_ret)) expect
+  | T_Not(e) -> 
+    check_types e Int_t;
+    type_correct Int_t expect;
+  | T_Raise(e) ->
+    check_types e Int_t;
+  | T_IfThenElse(b, e1, e2) ->
+    check_types b Int_t;
+    check_types e1 expect;
     check_types e2 expect
+  | T_TryWith(e1, var, e2) ->
+    check_types e1 expect;
+    variable_types := (var, Int_t)::!variable_types;
+    check_types e2 expect;
+    variable_types := List.remove_assoc var !variable_types;
+  | T_AMake(e) -> 
+    check_types e Int_t;
+    type_correct (Tab_t(Nothing_t)) expect
+  | T_ArrayAccess(v, e) -> (
+    check_types e Int_t;
+    match List.assoc v !variable_types with
+    | Nothing_t -> ()
+    | Tab_t(t) -> type_correct t expect
+  )
+  | T_ArrayWrite(v, e1, e2) -> (
+    check_types e1 Int_t;
+    match List.assoc v !variable_types with
+    | Nothing_t -> check_types e2 expect
+    | Tab_t(t) -> 
+      type_correct t expect;
+      check_types e2 t 
+  )
+  | T_PrInt(e) -> check_types e Int_t
+  | T_And(e1, e2) -> 
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Or(e1, e2) -> 
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Plus(e1, e2) -> 
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Minus(e1, e2) -> 
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Times(e1, e2) -> 
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Divide(e1, e2) -> 
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Lt(e1, e2) -> 
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Gt(e1, e2) -> 
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Lte(e1, e2) -> 
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Gte(e1, e2) -> 
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Neq(e1, e2) ->
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+  | T_Eq(e1, e2) ->
+    check_types e1 Int_t;
+    check_types e2 Int_t;
+    type_correct Int_t expect
+    
+      
+    
 
 let rec t_conversion = function
   | T_Unit -> Unit
