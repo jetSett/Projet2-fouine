@@ -49,6 +49,7 @@ let map_fun variables expr =
   let rec aux = function
     | [] -> expr
     | T_Var(v, t)::xs -> T_Function_arg(v, t, aux xs, Nothing_t)
+    | _ -> failwith "Erreur d'implémentation map_fun"
   in aux variables;;
 
 
@@ -138,6 +139,7 @@ and
     match List.assoc v !variable_types with
     | Nothing_t -> ()
     | Tab_t(t) -> type_correct t expect
+    | _ -> raise Type_Mismatch
   )
   | T_ArrayWrite(v, e1, e2) -> (
     check_types e1 Int_t;
@@ -146,6 +148,8 @@ and
     | Tab_t(t) ->
       type_correct t expect;
       check_types e2 t
+    | _ -> raise Type_Mismatch
+
   )
   | T_PrInt(e) -> check_types e Int_t
   | T_And(e1, e2) ->
@@ -197,9 +201,39 @@ and
     check_types e2 Int_t;
     type_correct Int_t expect
   | T_Apply(_) as e -> type_correct (check_apply e) expect
+  | T_Var(_) -> failwith "Using tvar out of lexing"
+  | T_Deference(e) -> check_types e (Ref_t(expect))
+  | T_Reference(e) -> (
+    match expect with
+      | Ref_t(t) -> check_types e t
+      | Nothing_t -> check_types e Nothing_t
+      | _ -> raise Type_Mismatch
+    )
+  | T_Imp(e1, e2) -> 
+    check_types e1 Nothing_t;
+    check_types e2 expect
+  | T_Set(v, e) -> (
+    match List.assoc v !variable_types with
+      | Nothing_t -> check_types e Nothing_t
+      | Ref_t(t) -> check_types e t;
+                    type_correct t expect
+      | _ -> raise Type_Mismatch
+  )
+  | T_Comma(e1, e2) -> (
+    match expect with
+      | Nothing_t -> check_types e1 Nothing_t;
+                     check_types e2 Nothing_t
+      | Pair_t(t1, t2) -> 
+              check_types e1 t1;
+              check_types e2 t2
+      | _ -> raise Type_Mismatch
+  )
+
+
     
 let rec t_conversion = function
   | T_Unit -> Unit
+  | T_Var _ -> failwith "Erreur d'implémentation t_conversion"
   | T_Const_int(a) -> Const_int(a)
   | T_Const_bool(a) -> Const_bool(a)
   | T_Variable(v) -> Variable(v)
