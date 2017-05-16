@@ -71,7 +71,7 @@ let run () =
     try
       check_types t_result Nothing_t
       with
-      | _ -> failwith "Type error"
+      | Type_Mismatch -> failwith "Type error"
   end;
 
   let result_nontyped = t_conversion t_result in
