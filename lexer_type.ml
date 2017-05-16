@@ -44,8 +44,6 @@ type typed_expr =
   | T_Comma of typed_expr * typed_expr
 ;;
 
-(* TODO modifier cette fonction ! *)
-
 let map_fun variables expr =
   let rec aux = function
     | [] -> expr
@@ -65,8 +63,32 @@ let rec type_correct t e = match t, e with
 
 let variable_types = ref []
 
+let rec check_apply funct = (* we only manage the call by variable *)
+  let rec liste_arg f l = match f with (* returns the variable of the function and the list of its args*)
+    | T_Apply(T_Variable(v), e) -> v, (e::l)
+    | T_Apply(e, x) -> liste_arg e (x::l)
+    | _ -> Var(""), []
+  in
+  (* to check the type of the remainings arguments *)
+  let rec check_all_nothing l = List.iter (fun x -> check_types x Nothing_t) l in 
+  (* check if the type of the args are correct*)
+  let rec check_types_args lArgs t_funct = match lArgs, t_funct with 
+    | [], _ -> t_funct
+    | x::q, Funct_t(t, e) -> 
+      check_types x t;
+      check_types_args q e
+    | x::q, Nothing_t -> check_all_nothing lArgs; Nothing_t
+    | _ -> failwith "Too many arguments"
+  in
+  let vf, lArgs = liste_arg funct [] in
+  if lArgs = [] then Nothing_t (* anonymous function *)
+  else
+    let t_funct = List.assoc vf !variable_types in
+    check_types_args lArgs t_funct
+      
+and
 (* raise exception if type mismatch *)
-let rec check_types e expect = match e with
+ check_types e expect = match e with
   | T_Unit -> ()
   | T_Const_int _ -> type_correct Int_t expect 
   | T_Const_bool _ -> type_correct Int_t expect
@@ -173,6 +195,7 @@ let rec check_types e expect = match e with
     check_types e1 Int_t;
     check_types e2 Int_t;
     type_correct Int_t expect
+  | T_Apply(_) as e -> type_correct (check_apply e) expect
     
       
     
