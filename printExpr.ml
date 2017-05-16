@@ -139,8 +139,14 @@ let print_typed_expr channel e =
     | T_Raise(e) -> ps "raise "; prE e;
     | T_PrInt(e) -> ps "prInt "; prE e;
     | T_Variable(x) -> printVar x
-    | T_Let_in(x, t, e1, e2) -> ps "let "; printVar x; ps " = "; prE e1; ps " in "; prE e2
-    | T_Let_rec(x, t, e1, e2) -> ps "let rec "; printVar x; ps " = "; prE e1; ps " in "; prE e2
+    | T_Let_in(x, t, e1, e2) ->
+      ps "let "; printVar x;
+      ps " : "; print_fouine_type t;
+      ps " = "; prE e1; ps " in "; prE e2
+    | T_Let_rec(x, t, e1, e2) ->
+      ps "let rec "; printVar x;
+      ps " : "; print_fouine_type t;
+      ps " = "; prE e1; ps " in "; prE e2
     | T_Let_match(x, t1, y, t2, e1, e2) -> ps "let ("; printVar x; ps ", "; printVar y; ps ") = "; prE e1; ps " in "; prE e2
     | T_Function_arg(x, t1, e, t2) ->
       print_fouine_type t1; ps " -> "; print_fouine_type t2; ps " = ";

@@ -84,10 +84,13 @@ fouine_type:
   | fouine_type RARROW fouine_type                                {       Funct_t($1, $3)                   }
   | fouine_type TIMES fouine_type                                 {       Pair_t($1, $3)                    }
 
+t_variable:
+  | variable                                                      {       T_Var($1, Nothing_t)              }
+  | LPARENT variable DOUBLE_POINT fouine_type RPARENT             {       T_Var($2, $4)                     }
+
 lvariable:
   |                                                               {       []                                }
-  | LPARENT variable DOUBLE_POINT fouine_type RPARENT lvariable   {       T_Var($2, $4)::$6                 }
-  | variable lvariable                                            {       T_Var($1, Nothing_t)::$2          }
+  | t_variable lvariable                                          {       $1::$2                            }
 ;
 
 sexpr:
@@ -104,9 +107,15 @@ return:
   | DOUBLE_POINT fouine_type                    {       $2                                       }
 
 dexpr:
-  | LET REC variable lvariable return EQ expr STP dexpr  {     T_Let_rec($3, $5, map_fun $4 $7 $5, $9)             }
-  | LET variable lvariable return EQ expr STP dexpr      {     T_Let_in($2, $4, map_fun $3 $6 $4, $8)              }
-  | LET variable COMMA variable EQ expr STP dexpr        {     T_Let_match($2, Nothing_t, $4, Nothing_t, $6, $8)   }
+  | LET REC variable lvariable return EQ expr STP dexpr  {      let args = map_fun $4 $7 $5 in
+                                                                let t = fouine_type_of $5 args in
+                                                                T_Let_rec($3, t, args, $9)              }
+  | LET variable lvariable return EQ expr STP dexpr      {      let args = map_fun $3 $6 $4 in
+                                                                let t = fouine_type_of $4 args in
+                                                                T_Let_in($2, t, args, $8)               }
+  | LET t_variable COMMA t_variable EQ expr STP dexpr    {      let T_Var(v1, t1) = $2 in
+                                                                let T_Var(v2, t2) = $4 in
+                                                                T_Let_match(v1, t1, v2, t2, $6, $8)     }
   | expr                                                 {     $1                                                  }
 
 expr:
@@ -114,9 +123,18 @@ expr:
   | PRINT expr                                  {     T_PrInt($2)                           }
   | expr IMP expr                               {     T_Imp($1, $3)                         }
 
-  | LET REC variable lvariable return EQ expr IN expr    {     T_Let_rec($3, $5, map_fun $4 $7 $5, $9)                              }
-  | LET variable lvariable return EQ expr IN expr        {     T_Let_in($2, $4, map_fun $3 $6 $4, $8)                               }
-  | LET variable COMMA variable EQ expr IN expr          {     T_Let_match($2, Nothing_t, $4, Nothing_t, $6, $8)                    }
+  | LET REC variable lvariable return EQ expr IN expr    {      let args = map_fun $4 $7 $5 in
+                                                                let t = fouine_type_of $5 args in
+                                                                T_Let_rec($3, t, args, $9)                                  }
+
+  | LET variable lvariable return EQ expr IN expr        {      let args = map_fun $3 $6 $4 in
+                                                                let t = fouine_type_of $4 args in
+                                                                T_Let_in($2, t, args, $8)                                   }
+
+  | LET t_variable COMMA t_variable EQ expr IN expr      {      let T_Var(v1, t1) = $2 in
+                                                                let T_Var(v2, t2) = $4 in
+                                                                T_Let_match(v1, t1, v2, t2, $6, $8)     }
+
   | FUN variable lvariable RARROW expr                   {     T_Function_arg($2, Nothing_t, map_fun $3 $5 Nothing_t, Nothing_t)    }
 
   | expr COMMA expr                              {     T_Comma($1, $3)                       }
