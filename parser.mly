@@ -99,21 +99,25 @@ sexpr:
   | LPARENT RPARENT                             {       T_Unit                                   }
 ;
 
+return:
+  |                                             {       Nothing_t                                }
+  | DOUBLE_POINT fouine_type                    {       $2                                       }
+
 dexpr:
-  | LET REC variable lvariable EQ expr STP dexpr  {     T_Let_rec($3, Nothing_t, map_fun $4 $6, $8)         }
-  | LET variable lvariable EQ expr STP dexpr      {     T_Let_in($2, Nothing_t, map_fun $3 $5, $7)          }
-  | LET variable COMMA variable EQ expr STP dexpr {     T_Let_match($2, Nothing_t, $4, Nothing_t, $6, $8)   }
-  | expr                                          {     $1                                                  }
+  | LET REC variable lvariable return EQ expr STP dexpr  {     T_Let_rec($3, $5, map_fun $4 $7, $9)                }
+  | LET variable lvariable return EQ expr STP dexpr      {     T_Let_in($2, $4, map_fun $3 $6, $8)                 }
+  | LET variable COMMA variable EQ expr STP dexpr        {     T_Let_match($2, Nothing_t, $4, Nothing_t, $6, $8)   }
+  | expr                                                 {     $1                                                  }
 
 expr:
   | IF bexpr THEN expr ELSE expr                {     T_IfThenElse($2, $4, $6)              }
   | PRINT expr                                  {     T_PrInt($2)                           }
   | expr IMP expr                               {     T_Imp($1, $3)                         }
 
-  | LET REC variable lvariable EQ expr IN expr    {     T_Let_rec($3, Nothing_t, map_fun $4 $6, $8)                 }
-  | LET variable lvariable EQ expr IN expr        {     T_Let_in($2, Nothing_t, map_fun $3 $5, $7)                  }
-  | LET variable COMMA variable EQ expr IN expr   {     T_Let_match($2, Nothing_t, $4, Nothing_t, $6, $8)           }
-  | FUN variable lvariable RARROW expr            {     T_Function_arg($2, Nothing_t, map_fun $3 $5, Nothing_t)     }
+  | LET REC variable lvariable return EQ expr IN expr    {     T_Let_rec($3, $5, map_fun $4 $7, $9)                        }
+  | LET variable lvariable return EQ expr IN expr        {     T_Let_in($2, $4, map_fun $3 $6, $8)                         }
+  | LET variable COMMA variable EQ expr IN expr          {     T_Let_match($2, Nothing_t, $4, Nothing_t, $6, $8)           }
+  | FUN variable lvariable RARROW expr                   {     T_Function_arg($2, Nothing_t, map_fun $3 $5, Nothing_t)     }
 
   | expr COMMA expr                              {     T_Comma($1, $3)                       }
 
