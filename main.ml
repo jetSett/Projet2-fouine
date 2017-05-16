@@ -67,6 +67,10 @@ let run () =
   let parse () = Parser.main Lexer.token lexbuf in
 
   let t_result = parse () in
+  if !debug_enable then (
+    print_typed_expr stdout t_result;
+    print_newline ()
+  );
   begin
     try
       check_types t_result Nothing_t
