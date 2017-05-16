@@ -58,7 +58,7 @@ let usage_msg = "Please read the rapport for further details";;
 let run () =
   Arg.parse options_list set_input usage_msg;
   if !command then (
-    print_string "\t\t\t\t Fouine version 2.00.0\n";
+    print_string "\t\t\t\t Fouine version 3.00.0\n";
     print_string "\n";
     print_string "# ";
     flush stdout);
