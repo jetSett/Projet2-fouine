@@ -5,20 +5,57 @@
 \usepackage{fullpage}
 
 % Title Page
-\title{Rendu 3 Projet 2}
+\title{Rendu 4 Projet 2}
 \author{Louis Bethune et Jo\"el Felderhoff}
 \date{}
 
 \begin{document}
 \maketitle
 
-\begin{section}{Notre interpretteur/compilateur fouine}
+\begin{section}{Notre interpreteur/compilateur fouine}
 
 \subsection{Travail effectué tout au long du semestre}
-Tout au long de ce semestre, nous avons fait divers rapport pour expliciter le travail effectué.
+Tout au long de ce semestre, nous avons fait divers rapports pour expliciter le travail effectué.
 
-Pour plus de précision, se référer à \ref{R1} \ref{R2}
+Pour plus de précision, se référer à \cite{Rapport1} \cite{Rapport2}
+
+Voici la liste (non exhaustive) des choses gérées par notre interpretteur/compilateur fouine à ce jour.
+
+\begin{itemize}
+\item \textbf{Éléments de bases de caml} : fonction récursives, à plusieurs arguments ou non... arithmétique classique
+\item \textbf{Aspects impératifs} : références sur tous les types, tableaux, paires, commandes lancées les unes après les autres...
+\item \textbf{Exceptions} : gestion des exceptions par continuation dans le code de l'interpreteur
+\item \textbf{Compilation vers machine à pile} : se référer à \cite{Rapport1}
+\item \textbf{Transformation de programmes} : tranformation fouine + impératif + exception -> fouine, mais sans la gestion des fonctions récursives. Se reporter à \cite{Rapport2}
+\item \textbf{Spécification de types} : on peut spécifier un type en particulier à la création des variables et le programme sera type checké avant exécution. Les variables non typées à leur création seront supposées appartenir au bon type...
+\end{itemize}
+
+\subsection{Ce que nous avons appris ce semestre}
+Il semble clair que nous avons gagné une meilleure compréhension du langage OCaml ainsi que du lexer/parser associé.
+
+Egalement, nos connaissances en conception logicielles ont été mises à rude épreuve, pour faire évoluer un projet sur un semestre entier, en rajoutant des couches sans toucher à ce qui a été fait les semaines precedentes.
+
+Notre facultée de résistance au sommeil a été evidemment un point crucial.
+
+Nous avons aussi beaucoup appris à travailler en équipe (facultée nommée par Louis sous le nom ``Diplomatie''). La répartition du travail n'a pas été facile à chaques fois, Jo\"el ne suivant pas les cours de Projet2 en eux meme. Néanmoins nous avons réussi à outrepasser ces difficultées, au pris d'un certain nombre d'engueulades ("Ma solution était la meilleure ! on a fait la tienne parce qu'elle était moins casse-couille !'').
+
+Au final, on s'est bien amusé, c'était cool.
+
+Nous ne retiendrons que deux citation : 
+
+\begin{quote}
+La prochaine fois que je vois une putain de fouine, je lui casse la gueule
+\end{quote}
+
+\begin{quote}
+Bon, si a l'issue de 3 tentatives je n'arrive toujours pas à faire compiler, je prend mon ordi et je le fracasse contre un coin de table
+\end{quote}
+
+Nous laissons à la postérité deviner lequel de nous deux à dit quelle phrase.
 
 \end{section}
+
+\bibliographystyle{plain}
+\bibliography{biblio}
 
 \end{document}
