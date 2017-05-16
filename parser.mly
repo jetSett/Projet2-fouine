@@ -29,8 +29,8 @@
 %nonassoc IF
 %nonassoc THEN
 %nonassoc ELSE
-%right FUN
-%nonassoc RARROW
+%nonassoc FUN
+%right RARROW
 %nonassoc LARROW
 %left SET
 
