@@ -139,15 +139,15 @@ let rec eval_cont k kE env = function
     ) kE env eIndex
   | Apply(f, arg) ->
     eval_cont (
-      fun eval_arg ->
+      fun eval_arg -> (*evalue l'argument*)
         eval_cont (
           function
           | Env.Closure(Function_arg(x, expr), e) ->
-            Env.push e x eval_arg;
+            Env.push e x eval_arg; (*remplace le nom du paramtre par l'evaluation*)
             eval_cont (
-              fun return ->
-                Env.pop e x;
-                k return
+              fun return -> (*evalue le contenu de la cloture*)
+                Env.pop e x; (*retirer le parametre de l'environnement*)
+                k return (*renvoyer le resultat*)
             ) kE e expr
           | _-> raise Not_A_Closure
         ) kE env f
