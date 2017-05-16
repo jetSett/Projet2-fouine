@@ -143,9 +143,8 @@ let print_typed_expr channel e =
     | T_Let_rec(x, t, e1, e2) -> ps "let rec "; printVar x; ps " = "; prE e1; ps " in "; prE e2
     | T_Let_match(x, t1, y, t2, e1, e2) -> ps "let ("; printVar x; ps ", "; printVar y; ps ") = "; prE e1; ps " in "; prE e2
     | T_Function_arg(x, t1, e, t2) ->
-      ps "fun (";
-      printVar x; ps " : "; print_fouine_type t1; ps ") : ";
-      print_fouine_type t2; ps " -> "; prE e
+      print_fouine_type t1; ps " -> "; print_fouine_type t2; ps " = ";
+      ps "fun "; printVar x; ps " -> "; prE e
     | T_IfThenElse(c, a, b) -> ps "if "; prE c; ps " then "; prE a; ps " else "; prE b
     | T_TryWith(e1, Var(x), e2) -> ps "try "; prE e1; ps "with E "; ps x; ps " -> "; prE e2;
     | T_Const_bool(b) -> if b then ps "true" else ps "false"

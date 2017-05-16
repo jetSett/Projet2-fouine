@@ -7,6 +7,7 @@ type fouine_type = Nothing_t | Int_t | Ref_t of fouine_type | Tab_t of fouine_ty
 		   | Funct_t of fouine_type * fouine_type (* arg -> return *)
 ;;
 
+type typed_variable = T_Var of variable * fouine_type;;
 type typed_expr =
   | T_Unit
   | T_Const_int of int
@@ -15,7 +16,7 @@ type typed_expr =
   | T_Let_in of variable * fouine_type * typed_expr * typed_expr
   | T_Let_rec of variable * fouine_type * typed_expr * typed_expr
   | T_Let_match of variable * fouine_type * variable * fouine_type * typed_expr * typed_expr
-  | T_Function_arg of variable * fouine_type  * typed_expr * fouine_type
+  | T_Function_arg of variable * fouine_type * typed_expr * fouine_type
   | T_Not of typed_expr
   | T_Raise of typed_expr
   | T_IfThenElse of typed_expr * typed_expr * typed_expr
@@ -44,12 +45,17 @@ type typed_expr =
   | T_Comma of typed_expr * typed_expr
 ;;
 
-type typed_variable = T_Var of variable * fouine_type;;
+let fouine_type_of return = function
+  | T_Function_arg(v, t1, e, t2) -> Funct_t(t1, t2)
+  | _ -> return
 
-let map_fun variables expr =
+let map_fun variables expr return =
   let rec aux = function
     | [] -> expr
-    | T_Var(v, t)::xs -> T_Function_arg(v, t, aux xs, Nothing_t)
+    | T_Var(v, t)::xs ->
+      let subfunc = aux xs in
+      let subtype = fouine_type_of return subfunc in
+      T_Function_arg(v, t, subfunc, subtype)
   in aux variables;;
 
 let rec type_correct t e = match t, e with
@@ -226,8 +232,6 @@ and
               check_types e2 t2
       | _ -> raise Type_Mismatch
   )
-
-
 
 let rec t_conversion = function
   | T_Unit -> Unit
