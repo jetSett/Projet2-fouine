@@ -9,7 +9,6 @@ type fouine_type = Nothing_t | Int_t | Ref_t of fouine_type | Tab_t of fouine_ty
 
 type typed_expr =
   | T_Unit
-  | T_Var of variable*fouine_type
   | T_Const_int of int
   | T_Const_bool of bool
   | T_Variable of variable
@@ -45,13 +44,13 @@ type typed_expr =
   | T_Comma of typed_expr * typed_expr
 ;;
 
+type typed_variable = T_Var of variable * fouine_type;;
+
 let map_fun variables expr =
   let rec aux = function
     | [] -> expr
     | T_Var(v, t)::xs -> T_Function_arg(v, t, aux xs, Nothing_t)
-    | _ -> failwith "Erreur d'implémentation map_fun"
   in aux variables;;
-
 
 let rec type_correct t e = match t, e with
   | Nothing_t, _ -> ()
@@ -72,11 +71,11 @@ let rec check_apply funct = (* we only manage the call by variable *)
     | _ -> Var(""), []
   in
   (* to check the type of the remainings arguments *)
-  let rec check_all_nothing l = List.iter (fun x -> check_types x Nothing_t) l in 
+  let rec check_all_nothing l = List.iter (fun x -> check_types x Nothing_t) l in
   (* check if the type of the args are correct*)
-  let rec check_types_args lArgs t_funct = match lArgs, t_funct with 
+  let rec check_types_args lArgs t_funct = match lArgs, t_funct with
     | [], _ -> t_funct
-    | x::q, Funct_t(t, e) -> 
+    | x::q, Funct_t(t, e) ->
       check_types x t;
       check_types_args q e
     | x::q, Nothing_t -> check_all_nothing lArgs; Nothing_t
@@ -87,7 +86,7 @@ let rec check_apply funct = (* we only manage the call by variable *)
   else
     let t_funct = List.assoc vf !variable_types in
     check_types_args lArgs t_funct
-      
+
 and
 (* raise exception if type mismatch *)
  check_types e expect = match e with
@@ -201,7 +200,6 @@ and
     check_types e2 Int_t;
     type_correct Int_t expect
   | T_Apply(_) as e -> type_correct (check_apply e) expect
-  | T_Var(_) -> failwith "Using tvar out of lexing"
   | T_Deference(e) -> check_types e (Ref_t(expect))
   | T_Reference(e) -> (
     match expect with
@@ -209,7 +207,7 @@ and
       | Nothing_t -> check_types e Nothing_t
       | _ -> raise Type_Mismatch
     )
-  | T_Imp(e1, e2) -> 
+  | T_Imp(e1, e2) ->
     check_types e1 Nothing_t;
     check_types e2 expect
   | T_Set(v, e) -> (
@@ -223,17 +221,16 @@ and
     match expect with
       | Nothing_t -> check_types e1 Nothing_t;
                      check_types e2 Nothing_t
-      | Pair_t(t1, t2) -> 
+      | Pair_t(t1, t2) ->
               check_types e1 t1;
               check_types e2 t2
       | _ -> raise Type_Mismatch
   )
 
 
-    
+
 let rec t_conversion = function
   | T_Unit -> Unit
-  | T_Var _ -> failwith "Erreur d'implémentation t_conversion"
   | T_Const_int(a) -> Const_int(a)
   | T_Const_bool(a) -> Const_bool(a)
   | T_Variable(v) -> Variable(v)
