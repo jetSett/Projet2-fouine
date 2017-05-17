@@ -12,7 +12,7 @@
 \begin{document}
 \maketitle
 
-\begin{section}{Notre interpreteur/compilateur fouine}
+\section{Notre interpreteur/compilateur fouine}
 
 \subsection{Travail effectué tout au long du semestre}
 Tout au long de ce semestre, nous avons fait divers rapports pour expliciter le travail effectué.
@@ -35,6 +35,10 @@ Il semble clair que nous avons gagné une meilleure compréhension du langage OC
 
 Egalement, nos connaissances en conception logicielles ont été mises à rude épreuve, pour faire évoluer un projet sur un semestre entier, en rajoutant des couches sans toucher à ce qui a été fait les semaines precedentes.
 
+Nous avons apris à nous servir du système de citation de latex \cite{Zizi}
+
+Nous avons aussi pu nous familiariser avec Git, en perfectionnement pour Jo\"el et en apprentissage pour Louis. Nous avons pu sans trop de conflits travailler sur un projet à deux avec plusieurs ordi, voire meme à plusieurs endroits en France ! Nous avons une fouine inter-cité !
+
 Notre facultée de résistance au sommeil a été evidemment un point crucial.
 
 Nous avons aussi beaucoup appris à travailler en équipe (facultée nommée par Louis sous le nom ``Diplomatie''). La répartition du travail n'a pas été facile à chaques fois, Jo\"el ne suivant pas les cours de Projet2 en eux meme. Néanmoins nous avons réussi à outrepasser ces difficultées, au pris d'un certain nombre d'engueulades ("Ma solution était la meilleure ! on a fait la tienne parce qu'elle était moins casse-couille !'').
@@ -53,7 +57,60 @@ Bon, si a l'issue de 3 tentatives je n'arrive toujours pas à faire compiler, je
 
 Nous laissons à la postérité deviner lequel de nous deux à dit quelle phrase.
 
-\end{section}
+
+\section{Le travail de cette semaine en particulier}
+Le travail de cette semaine a été assez compliqué car Jo\" a réussi à faire crasher son disque dur. Heureusement, grace à la magie des gestionnaires de version, le travail a juste été ralenti.
+
+Au vu du temps qu'il nous restait, nous avons choisi de traiter le type checking explicite : on donne un type à une variable lors de son initialisation, de meme pour les fonction. Ensuite on teste ce qui peut etre testé : typiquement on veut un entier en parametre d'un \textbf{AMake} ou d'un \textbf{prInt}.
+
+Ce travail s'est réparti comme il suit : nous avons a deux conçu les différents types et l'architecture. Louis s'est ensuite occupé du parseur, et Jo\"el du checking
+
+\subsection{L'évaluation par continuation}
+Codé par Louis dans eval.ml.  
+  
+Une mauvaise compréhension de l'évaluation par continuation dans le rendu 2 nous avait fait mal implémenter l'évaluation. Et plutôt que d'avoir une évaluation par continuation toute belle toute propre, nous avions un une fonction un peu aberrante \textbf{handle} servant de rustine, pour catch les exceptions puis les relancer pendant qu'elles remontaient la pile d'appel. C'était moche et pas pratique.  
+  
+J'ai donc recodé l'intégralité de la fonction d'évaluation à l'aide des continuations. k désigne le futur quand tout va bien, et kE est une pile (sous forme de liste) de futurs alternatifs correspondant aux blocs try\_catch imbriqués. Pour ce que j'en ai testé, ça marche bien. La vieille fonction eval est présente en commentaires dans le code, à titre posthume.    
+
+\subsection{L'architecture du type checking}
+Nous avons choisi de créer un nouveau type, représentatant les expressions de fouine typées. Ce type ne sera utile qu'à la première lecture du programme : on fera alors le type checking, puis on le converti en expression fouine de base.
+
+Ce choix a été fait dans le but de ne pas avoir à modifier en profondeur le code écrit les semaines precedentes. Cela nous permet également de séparer la partie d'évaluation et de traitement des types de la partie purement calculatoire du programme. Avec ce choix de conception, le rajout d'un système d'inférence de type se ferait plus naturellement.
+
+\subsection{Le parseur du type checking}
+Codé par Louis dans parser.mly.
+
+Le parser a du etre réécrit pour prendre en compte le nouveau type \textbf{typed\_expr}. Il a fallu coder un certain nombre de fonctions utilitaire pour déterminer correctement le type des fonctions à plusieurs arguments : la curryfication automatique que nous avions codé dans le rendu 2 ne nous facilitait pas la tâche.
+
+De plus la syntaxe est assez ambigüe. Par exemple :
+
+\begin{itemize}
+\item let f : int = 42 in f;; ici on doit comprendre que f est de type int.
+\item let f (x : int) : int = 42 in f;; ici on doit comprendre que f est une fonction qui renvoit un int.
+\end{itemize}
+
+Ainsi le : int s'interprète différemment selon si la liste d'arguments est vide ou non. Ces petites inconsistances ont demandé un peu de code et de redondances. 
+
+En particulier, dans le type \textbf{typed\_expr}, le type n'est pas lié à la variable mais aux termes Let ou Fun. Sémantiquement parlant, c'est problématique. En effet, c'est bien la variable qui a un type, et non l'instruction servant à l'initialiser. Toutefois ce choix facilitait le travail de Joël, et permettait de mette laccent sur le fait qu'on ne se souciaient du typage qu'à l'initialisation. Le manque du temps nous a fait partir sur ce choix. Néanmoins, si nous avions implémenté le niveau deux (avec inférence de type) nous aurions lié le type aux variables et non aux instructions. 
+
+Le parser se transforme peu à peu en purée immonde, s'il y avait eu un rendu 5, je l'aurais refactorisé.
+
+\subsection{Le type checker}
+
+Codé par Joël dans lexer\_type.ml
+
+La fonction principale est check\_types. Elle prend en argument une expression fouine typée et un type attendu. Cette fonction teste si le type de l'expression correspond bien au type attendu.
+
+Il est important de préciser ce que "correspond" veut dire ici. On a un type "fourre tout" que l'on donne aux variables et aux expressions dont on ne connait pas le type. C'est le type \textbf{Nothing\_t}. Lorsqu'on cherche à savoir si ce type correspond à un autre type, ou alors qu'un autre type lui correspond, on prend le parti de dire que c'est le cas.
+
+Lorsqu'une erreur de type est détectée, une exception est lancée. Cela est fait au moyen d'une fonction type\_correct.
+
+Le gros du reste du code est assez logique : on regarde les types que sont cencées s=nous renvoyées les expressions, et on les compare au type attendu.
+
+Des efforts sont à faire au niveau des expressions qui attendent des types particuliers, comme \textbf{prInt}. On reagrde alors si on a bien en argument un type \textbf{Int\_t}. De même pour les références. Lorsqu'on déférence une variable ou une expression, on s'attend à ce que le type de tout ça soit une référence.
+
+Gestion des variables : j'ai utilisé une structure de dictionnaire avec des listes de paires. Il aurait été plus efficace d'utiliser des hashtbl mais ça aurait été plus long à faire et cela aurait induit de la lourdeur dans le code d'un fichier déjà très long.
+
 
 \bibliographystyle{plain}
 \bibliography{biblio}
